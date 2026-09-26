@@ -1,11 +1,15 @@
 # navairgap dotfiles — Nothing OS × Hyprland
 
+![banner](.github/assets/banner.png)
+
 A Hyprland rice inspired by **Nothing OS**: monochrome black, dot-matrix
 accents, one red (`#ff3122`), zero chrome. Everything says less.
 
-```
-● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ●
-```
+## Preview
+
+![desktop preview](.github/assets/desktop.png)
+
+*(rendered mock of the waybar + wallpaper + kitty + rofi — run `install.sh` for the real thing)*
 
 ## Stack
 
@@ -55,9 +59,12 @@ dunst/       dunstrc
 fastfetch/   config.jsonc
 scripts/     install.sh, make-wallpaper.sh
 wallpapers/  nothing-dots.png (pre-generated)
+.github/     assets/ — banner, desktop preview, palette
 ```
 
 ## Palette
+
+![palette](.github/assets/palette.png)
 
 | role    | hex       |
 | ------- | --------- |
