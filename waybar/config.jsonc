@@ -1,0 +1,55 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 36,
+  "spacing": 0,
+  "modules-left": ["hyprland/workspaces", "custom/dot", "hyprland/window"],
+  "modules-center": ["clock"],
+  "modules-right": ["pulseaudio", "custom/dot", "network", "custom/dot", "battery", "tray"],
+
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "format-icons": {
+      "active": "●",
+      "default": "○",
+      "empty": "·",
+      "urgent": "◉"
+    },
+    "persistent-workspaces": { "*": 5 },
+    "on-click": "activate"
+  },
+  "hyprland/window": {
+    "format": "{}",
+    "max-length": 40,
+    "separate-outputs": true
+  },
+  "clock": {
+    "format": "{:%H:%M}",
+    "format-alt": "{:%a %d %b  ·  %H:%M}",
+    "tooltip-format": "<tt>{calendar}</tt>"
+  },
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": "○ mute",
+    "format-icons": { "default": ["●"] },
+    "on-click": "pavucontrol"
+  },
+  "network": {
+    "format-wifi": "● {essid}",
+    "format-ethernet": "● wired",
+    "format-disconnected": "○ offline",
+    "tooltip-format": "{ipaddr}"
+  },
+  "battery": {
+    "format": "{icon} {capacity}%",
+    "format-icons": ["○", "◔", "◑", "◕", "●"],
+    "states": { "warn": 25, "crit": 10 }
+  },
+  "tray": { "spacing": 8 },
+
+  "custom/dot": {
+    "format": "●",
+    "interval": "once",
+    "tooltip": false
+  }
+}
