@@ -19,7 +19,7 @@ PKGS=(
   xdg-desktop-portal-hyprland xdg-user-dirs
   polkit-kde-agent qt5-wayland qt6-wayland
   ttf-jetbrainsmono-nerd imagemagick fastfetch
-  brightnessctl cliphist wl-clipboard
+  brightnessctl cliphist wl-clipboard grim slurp
 )
 
 dot "installing packages (${#PKGS[@]})…"
