@@ -1,0 +1,56 @@
+/* nothing rofi — black, one red, dots */
+
+* {
+  bg: #000000;
+  fg: #f5f5f5;
+  muted: #8a8a8a;
+  surface: #141414;
+  red: #ff3122;
+  background-color: transparent;
+  text-color: @fg;
+  font: "JetBrains Mono 12";
+}
+
+window {
+  location: center;
+  anchor: center;
+  width: 560px;
+  border: 1px solid @surface;
+  border-radius: 12px;
+  background-color: @bg;
+  padding: 18px;
+}
+
+inputbar {
+  children: [ prompt, entry ];
+  background-color: @surface;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 0 0 14px 0;
+}
+
+prompt { text-color: @red; }
+
+entry { placeholder: "type to search · ●"; placeholder-color: @muted; }
+
+listview {
+  lines: 8;
+  spacing: 4;
+  scrollbar: false;
+  fixed-height: false;
+}
+
+element {
+  padding: 9px 14px;
+  border-radius: 8px;
+  text-color: @muted;
+}
+
+element selected {
+  background-color: @red;
+  text-color: #000000;
+}
+
+element-text { text-color: inherit; }
+
+message, textbox { text-color: @muted; }
