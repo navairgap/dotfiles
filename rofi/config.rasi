@@ -1,0 +1,9 @@
+configuration {
+  modi: "drun,run";
+  font: "JetBrains Mono 12";
+  show-icons: false;
+  display-drun: "❯";
+  display-run: "❯";
+  drun-display-format: "{name}";
+}
+@theme "~/.config/rofi/nothing.rasi"
