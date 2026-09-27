@@ -1,0 +1,14 @@
+{
+  "layer": "top",
+  "position": "right",
+  "width": 64,
+  "margin-right": 12,
+  "modules-right": ["clock#big", "custom/dot", "custom/battgrid", "custom/dot", "custom/ramdots", "custom/dot", "custom/weather"],
+
+  "clock#big": { "format": "{:%H
+%M}", "tooltip-format": "<tt>{calendar}</tt>" },
+  "custom/dot": { "format": "●", "interval": "once", "tooltip": false },
+  "custom/battgrid": { "exec": "~/.config/waybar/battery-dots.sh", "interval": 10, "tooltip": false },
+  "custom/ramdots": { "exec": "~/.config/waybar/ram-dots.sh", "interval": 5, "tooltip": false },
+  "custom/weather": { "exec": "~/.config/waybar/weather-pill.sh", "interval": 600, "tooltip": false }
+}
