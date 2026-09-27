@@ -37,6 +37,12 @@ for d in hypr waybar rofi kitty dunst fastfetch gtk-3.0; do
   [ -e "$CONFIG/$d" ] && [ ! -L "$CONFIG/$d" ] && mv "$CONFIG/$d" "$BACKUP/" && echo "    moved $d"
 done
 
+# ---------- fonts ----------
+dot "installing nothing fonts…"
+mkdir -p "$HOME/.local/share/fonts"
+cp "$REPO_DIR/fonts/"*.ttf "$HOME/.local/share/fonts/"
+fc-cache -f >/dev/null 2>&1 || true
+
 # ---------- symlink ----------
 dot "linking configs…"
 link() {  # link <repo-relative> <target>
@@ -55,10 +61,12 @@ link gtk-3.0         "$CONFIG/gtk-3.0"
 # scripts into place
 mkdir -p "$HOME/bin" 2>/dev/null || true
 ln -sf "$REPO_DIR/scripts/make-wallpaper.sh" "$HOME/.local/bin/make-wallpaper" 2>/dev/null || true
+ln -sf "$REPO_DIR/scripts/set-wallpaper.sh" "$HOME/.local/bin/set-wallpaper" 2>/dev/null || true
+chmod +x "$REPO_DIR"/scripts/*.sh "$REPO_DIR"/waybar/*.sh 2>/dev/null || true
 
 # ---------- wallpaper ----------
-dot "generating dot-matrix wallpaper…"
-bash "$REPO_DIR/scripts/make-wallpaper.sh" || echo "  ! wallpaper step skipped (imagemagick missing?)"
+dot "setting nothing wallpaper…"
+bash "$REPO_DIR/scripts/set-wallpaper.sh" || bash "$REPO_DIR/scripts/make-wallpaper.sh" || echo "  ! wallpaper step skipped (imagemagick missing?)"
 
 # ---------- default shell ----------
 if command -v zsh >/dev/null && [ "$SHELL" != "$(command -v zsh)" ]; then
