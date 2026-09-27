@@ -39,8 +39,8 @@ log out, pick hyprland at your dm, log in.
 
 ## what's here
 
-hypr/ (main, keys, autostart, rules, colors) · waybar · rofi · kitty ·
-dunst · fastfetch · swww wallpaper script · gtk dark · screenshot helper
+hypr/ (main, keys, autostart, rules, colors) · waybar (pill bar + widgets) ·
+rofi · kitty · dunst · fastfetch · nothing wallpapers · gtk dark · screenshot helper
 
 ## palette
 
@@ -54,6 +54,7 @@ bg `#000000` · fg `#f5f5f5` · muted `#8a8a8a` · surface `#141414` · red `#ff
 - swww loses the wallpaper after suspend sometimes — just re-run `scripts/make-wallpaper.sh`, it's idempotent.
 - bluetooth + pipewire crackle on some headsets. it's pipewire, not the dots. probably.
 - screenshots: `scripts/screenshot.sh` (area select, auto-copies) or plain `grim`.
+- right-side dot widgets (the NThing look): `waybar -c ~/.config/waybar/widgets.jsonc -s ~/.config/waybar/style.css`. optional, the pill bar is the default.
 - todo: steal a better rofi theme. todo: decide if i actually like the gaps_out=10 or if 8 is the truth.
 - todo: nvidia laptop owners — set your env vars, you're on your own.
 
@@ -62,6 +63,8 @@ bg `#000000` · fg `#f5f5f5` · muted `#8a8a8a` · surface `#141414` · red `#ff
 - keybind layout and the general shape: prasanthrangan/hyprdots
 - blur/animation starting point: end-4 — then i made them boring on purpose
 - dot workspaces — half of r/unixporn does this, not sure who started it
+- wallpapers + JND dot fonts: Runixe786/NThing-UI (rainmeter skin) — personal-use only, go star the original
+- reference look: nothing.community "NothingOS inspired desktop setup" thread
 
 ## license
 
