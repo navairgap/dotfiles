@@ -1,4 +1,4 @@
-/* nothing waybar — black slab, dots for everything, red only when it matters */
+/* nothing pill waybar — floating black pills, dots in JND, red only when it matters */
 
 * {
   font-family: "JetBrains Mono Nerd Font", monospace;
@@ -9,59 +9,67 @@
 }
 
 window#waybar {
-  background: #000000;
+  background: transparent;
   color: #f5f5f5;
-  border-bottom: 1px solid #141414;
+}
+
+.modules-left, .modules-center, .modules-right {
+  background: rgba(8, 8, 8, 0.92);
+  border: 1px solid #1c1c1c;
+  border-radius: 999px;
+  padding: 4px 12px;
+  margin: 0 2px;
+}
+
+/* vertical widgets bar */
+window#waybar.widgets .modules-right {
+  background: rgba(8, 8, 8, 0.92);
+  border-radius: 24px;
+  padding: 14px 8px;
 }
 
 #workspaces button {
-  padding: 0 8px;
+  padding: 0 7px;
   color: #8a8a8a;
   background: transparent;
+  font-family: "JND_Nothing4", "JetBrains Mono Nerd Font";
+  font-size: 11px;
 }
+#workspaces button.active { color: #f5f5f5; }
+#workspaces button.urgent { color: #ff3122; }
+#workspaces button:hover { color: #ff3122; background: transparent; box-shadow: none; }
 
-#workspaces button.active {
-  color: #f5f5f5;
-}
-
-#workspaces button.urgent {
-  color: #ff3122;
-}
-
-#workspaces button:hover {
-  color: #ff3122;
-  background: transparent;
-  box-shadow: none;
-}
-
-#window {
-  color: #8a8a8a;
-}
+#window { color: #8a8a8a; }
 
 #clock {
+  font-family: "JND_Nothing4", "JetBrains Mono Nerd Font";
+  font-size: 15px;
   color: #f5f5f5;
-  font-weight: 700;
+}
+window#waybar.widgets #clock {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+#custom-dot { color: #2a2a2a; font-size: 7px; padding: 0 2px; }
+#custom-logo { color: #ff3122; font-size: 15px; padding: 0 6px; }
+#custom-search { color: #8a8a8a; padding: 0 8px; }
+#custom-search:hover, #custom-logo:hover { color: #f5f5f5; }
+
+#custom-battgrid, #custom-ramdots {
+  font-family: "JND_Nothing4", "JetBrains Mono Nerd Font";
   letter-spacing: 1px;
+  color: #f5f5f5;
+  padding: 2px 0;
 }
+#custom-weather { color: #8a8a8a; }
 
-#custom-dot {
-  color: #2a2a2a;
-  font-size: 6px;
-  padding: 0 4px;
-}
-
-#pulseaudio, #network, #battery {
-  color: #8a8a8a;
-  padding: 0 8px;
-}
-
-#battery.warn { color: #ff3122; }
-#battery.crit { color: #ff3122; }
-
+#pulseaudio, #network, #battery { color: #8a8a8a; padding: 0 8px; }
+#battery.warn, #battery.crit { color: #ff3122; }
 #tray { padding: 0 8px; }
 
 tooltip {
   background: #000000;
-  border: 1px solid #141414;
+  border: 1px solid #1c1c1c;
   color: #f5f5f5;
 }
