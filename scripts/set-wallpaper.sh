@@ -11,4 +11,5 @@ fi
 pgrep -x swww-daemon >/dev/null || swww-daemon >/dev/null 2>&1 &
 sleep 0.4
 swww img "$CHOICE" --transition-type wipe --transition-angle 30 --transition-duration 1.2
+ln -sf "$(readlink -f "$CHOICE")" "$HOME/.cache/nthing-current"
 echo "wallpaper: $CHOICE"
