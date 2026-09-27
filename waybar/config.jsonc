@@ -1,55 +1,61 @@
 {
   "layer": "top",
-  "position": "top",
-  "height": 36,
-  "spacing": 0,
-  "modules-left": ["hyprland/workspaces", "custom/dot", "hyprland/window"],
-  "modules-center": ["clock"],
-  "modules-right": ["pulseaudio", "custom/dot", "network", "custom/dot", "battery", "tray"],
+  "position": "bottom",
+  "height": 46,
+  "margin-bottom": 10,
+  "spacing": 8,
+  "modules-left": ["custom/logo", "custom/search", "hyprland/workspaces"],
+  "modules-center": ["hyprland/window"],
+  "modules-right": ["custom/weather", "custom/dot", "pulseaudio", "battery", "clock"],
 
+  "custom/logo": {
+    "format": "◢",
+    "on-click": "rofi -show drun -config ~/.config/rofi/config.rasi",
+    "tooltip": false
+  },
+  "custom/search": {
+    "format": "● search",
+    "on-click": "rofi -show drun -config ~/.config/rofi/config.rasi",
+    "tooltip": false
+  },
   "hyprland/workspaces": {
     "format": "{icon}",
-    "format-icons": {
-      "active": "●",
-      "default": "○",
-      "empty": "·",
-      "urgent": "◉"
-    },
+    "format-icons": { "active": "●", "default": "○", "empty": "·", "urgent": "◉" },
     "persistent-workspaces": { "*": 5 },
     "on-click": "activate"
   },
-  "hyprland/window": {
-    "format": "{}",
-    "max-length": 40,
-    "separate-outputs": true
+  "hyprland/window": { "format": "{}", "max-length": 36, "separate-outputs": true },
+
+  "custom/weather": {
+    "exec": "~/.config/waybar/weather-pill.sh",
+    "interval": 600,
+    "tooltip": false
   },
-  "clock": {
-    "format": "{:%H:%M}",
-    "format-alt": "{:%a %d %b  ·  %H:%M}",
-    "tooltip-format": "<tt>{calendar}</tt>"
-  },
+  "custom/dot": { "format": "●", "interval": "once", "tooltip": false },
   "pulseaudio": {
     "format": "{icon} {volume}%",
     "format-muted": "○ mute",
     "format-icons": { "default": ["●"] },
     "on-click": "pavucontrol"
   },
-  "network": {
-    "format-wifi": "● {essid}",
-    "format-ethernet": "● wired",
-    "format-disconnected": "○ offline",
-    "tooltip-format": "{ipaddr}"
-  },
   "battery": {
     "format": "{icon} {capacity}%",
     "format-icons": ["○", "◔", "◑", "◕", "●"],
     "states": { "warn": 25, "crit": 10 }
   },
-  "tray": { "spacing": 8 },
+  "clock": { "format": "{:%H:%M}", "format-alt": "{:%a %d %b · %H:%M}", "tooltip-format": "<tt>{calendar}</tt>" },
 
-  "custom/dot": {
-    "format": "●",
-    "interval": "once",
+  "custom/battgrid": {
+    "exec": "~/.config/waybar/battery-dots.sh",
+    "interval": 10,
+    "tooltip": false
+  },
+  "custom/ramdots": {
+    "exec": "~/.config/waybar/ram-dots.sh",
+    "interval": 5,
     "tooltip": false
   }
 }
+
+// right-side dot widgets (like the reference): launch with
+//   waybar -c ~/.config/waybar/widgets.jsonc -s ~/.config/waybar/style.css
