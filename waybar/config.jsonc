@@ -5,7 +5,7 @@
   "margin-bottom": 10,
   "spacing": 8,
   "modules-left": ["custom/logo", "custom/search", "hyprland/workspaces"],
-  "modules-center": ["hyprland/window"],
+  "modules-center": ["hyprland/window", "custom/media"],
   "modules-right": ["custom/weather", "custom/dot", "pulseaudio", "battery", "clock"],
 
   "custom/logo": {
@@ -32,6 +32,12 @@
     "tooltip": false
   },
   "custom/dot": { "format": "●", "interval": "once", "tooltip": false },
+  "custom/media": {
+    "exec": "~/.config/waybar/media.sh",
+    "interval": 2,
+    "on-click": "playerctl play-pause",
+    "tooltip": false
+  },
   "pulseaudio": {
     "format": "{icon} {volume}%",
     "format-muted": "○ mute",
