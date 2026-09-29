@@ -23,6 +23,7 @@
     "gpu",
     "memory",
     "disk",
+    "localip",
     "uptime",
     "break",
     { "type": "colors", "symbol": "circle" }
