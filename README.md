@@ -69,3 +69,6 @@ bg `#000000` · fg `#f5f5f5` · muted `#8a8a8a` · surface `#141414` · red `#ff
 ## license
 
 mit (see LICENSE)
+
+---
+maintained · verified 2026-09-30
