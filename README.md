@@ -76,3 +76,8 @@ maintained · verified 2026-09-30
 maintained · verified 2026-10-01
 ---
 maintained · verified 2026-10-02
+
+## Tips
+
+- `super + shift + b` restarts waybar if the tray icons don't appear on first boot.
+- re-run `scripts/make-wallpaper.sh` after suspend if swww loses the wallpaper.
