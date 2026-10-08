@@ -81,3 +81,8 @@ maintained · verified 2026-10-02
 
 - `super + shift + b` restarts waybar if the tray icons don't appear on first boot.
 - re-run `scripts/make-wallpaper.sh` after suspend if swww loses the wallpaper.
+
+
+## netcheck
+
+`netcheck port host 443 80 22` scans several ports in one run; `-t` sets the connect timeout. exit code 1 if any port is closed — wire it into scripts.
