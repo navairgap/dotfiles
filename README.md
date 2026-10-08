@@ -86,3 +86,8 @@ maintained · verified 2026-10-02
 ## netcheck
 
 `netcheck port host 443 80 22` scans several ports in one run; `-t` sets the connect timeout. exit code 1 if any port is closed — wire it into scripts.
+
+
+## serveit
+
+`serveit . -p 9000 --no-listing` shares a folder without exposing directory listings. localhost bind by default; `-b 0.0.0.0` only on trusted networks.
