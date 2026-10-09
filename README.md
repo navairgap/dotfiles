@@ -98,3 +98,8 @@ maintained · verified 2026-10-02
 - try out caelestia's dot collection for the shell
 - decide gaps 8 vs 10 for good
 - package the widgets bar as its own config people can steal
+
+
+## Getting help
+
+most rice problems are one of three things: stale waybar cache (restart it), lost wallpaper (re-run the generator), or a stale swww socket (kill the daemon, it restarts itself). past that, open an issue with `hyprctl systeminfo` attached.
