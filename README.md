@@ -91,3 +91,10 @@ maintained · verified 2026-10-02
 ## serveit
 
 `serveit . -p 9000 --no-listing` shares a folder without exposing directory listings. localhost bind by default; `-b 0.0.0.0` only on trusted networks.
+
+
+## Roadmap
+
+- try out caelestia's dot collection for the shell
+- decide gaps 8 vs 10 for good
+- package the widgets bar as its own config people can steal
