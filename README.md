@@ -103,3 +103,9 @@ maintained · verified 2026-10-02
 ## Getting help
 
 most rice problems are one of three things: stale waybar cache (restart it), lost wallpaper (re-run the generator), or a stale swww socket (kill the daemon, it restarts itself). past that, open an issue with `hyprctl systeminfo` attached.
+
+## Known limitations
+
+- waybar tray icons occasionally don't appear on first boot — restart waybar
+- swww can lose the wallpaper across suspend — re-run the generator
+- multi-monitor gaps aren't tuned; single-monitor setups look the intended way
