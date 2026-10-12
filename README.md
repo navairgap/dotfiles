@@ -109,3 +109,9 @@ most rice problems are one of three things: stale waybar cache (restart it), los
 - waybar tray icons occasionally don't appear on first boot — restart waybar
 - swww can lose the wallpaper across suspend — re-run the generator
 - multi-monitor gaps aren't tuned; single-monitor setups look the intended way
+
+## Influences
+
+- end-4 — animation curves; took the bezier, left the rest
+- prasanthrangan/hyprdots — keybind layout
+- caelestia — shell ideas, not yet adopted
