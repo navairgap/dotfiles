@@ -115,3 +115,15 @@ most rice problems are one of three things: stale waybar cache (restart it), los
 - end-4 — animation curves; took the bezier, left the rest
 - prasanthrangan/hyprdots — keybind layout
 - caelestia — shell ideas, not yet adopted
+
+## Keybind reference
+
+| key | action |
+| --- | --- |
+| super + h/j/k/l | focus |
+| super + shift + h/j/k/l | move window |
+| super + 1..5 / shift+1..5 | workspace / send |
+| super + f / m | fullscreen / maximize |
+| super + w | next wallpaper |
+| super + shift + b | restart waybar |
+| super + q | close |
