@@ -131,3 +131,7 @@ most rice problems are one of three things: stale waybar cache (restart it), los
 ## Upgrade path
 
 `git pull` in ~/dotfiles picks up changes; re-run `scripts/install.sh` only when new packages or fonts appear in the commit log. your tweaks in `~/.config` survive — the installer never overwrites, it symlinks.
+
+## Non-goals
+
+no widget framework, no distro support beyond arch, no install wizard. three files of shell and symlinks is the whole product.
