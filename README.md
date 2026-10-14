@@ -139,3 +139,7 @@ no widget framework, no distro support beyond arch, no install wizard. three fil
 ## Fonts
 
 the JND dot fonts ship in `fonts/` and install to `~/.local/share/fonts` — they came with the NThing-UI rainmeter skin and are personal-use only. JetBrains Mono Nerd Font is the workhorse; the dot fonts are the garnish.
+
+## Maintenance
+
+day-to-day: `git pull` in ~/dotfiles. after pulls that touch `scripts/install.sh`, re-run it — it is idempotent and backs up before linking. when waybar misbehaves, `super+shift+b` before anything else.
