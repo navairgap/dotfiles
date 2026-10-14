@@ -135,3 +135,7 @@ most rice problems are one of three things: stale waybar cache (restart it), los
 ## Non-goals
 
 no widget framework, no distro support beyond arch, no install wizard. three files of shell and symlinks is the whole product.
+
+## Fonts
+
+the JND dot fonts ship in `fonts/` and install to `~/.local/share/fonts` — they came with the NThing-UI rainmeter skin and are personal-use only. JetBrains Mono Nerd Font is the workhorse; the dot fonts are the garnish.
