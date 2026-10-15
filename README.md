@@ -143,3 +143,7 @@ the JND dot fonts ship in `fonts/` and install to `~/.local/share/fonts` — the
 ## Maintenance
 
 day-to-day: `git pull` in ~/dotfiles. after pulls that touch `scripts/install.sh`, re-run it — it is idempotent and backs up before linking. when waybar misbehaves, `super+shift+b` before anything else.
+
+## Shell
+
+zsh with a minimal rc — prompt, path, history size, done. a shell you can't retype from memory is a liability.
