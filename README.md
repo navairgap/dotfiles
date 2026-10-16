@@ -147,3 +147,7 @@ day-to-day: `git pull` in ~/dotfiles. after pulls that touch `scripts/install.sh
 ## Shell
 
 zsh with a minimal rc — prompt, path, history size, done. a shell you can't retype from memory is a liability.
+
+## History
+
+the rice started life as a windows rainmeter screenshot on nothing.community and became a hyprland setup over one weekend of stubbornness. the community post is credited in the readme; the bugs are original.
