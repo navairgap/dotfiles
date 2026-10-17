@@ -5,7 +5,7 @@ DIR="$HOME/dotfiles/wallpapers"
 
 if [ $# -ge 1 ]; then
   if [ ! -f "$1" ]; then
-    printf 'wallpaper: not a file: %s\\n' "$1" >&2
+    printf 'wallpaper: not a file: %s\n' "$1" >&2
     exit 2
   fi
   CHOICE="$1"
@@ -13,7 +13,7 @@ else
   shopt -s nullglob
   WALLS=("$DIR"/nthing-*.jpg)
   if [ ${#WALLS[@]} -eq 0 ]; then
-    printf 'wallpaper: no nthing-*.jpg files found in %s\\n' "$DIR" >&2
+    printf 'wallpaper: no nthing-*.jpg files found in %s\n' "$DIR" >&2
     exit 1
   fi
   CHOICE="${WALLS[RANDOM % ${#WALLS[@]}]}"
