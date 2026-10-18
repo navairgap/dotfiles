@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # cycle to the next nthing wallpaper
 DIR="$HOME/dotfiles/wallpapers"
-mapfile -t WALLS < <(ls "$DIR"/nthing-*.jpg)
-[ ${#WALLS[@]} -eq 0 ] && exit 0
+shopt -s nullglob
+WALLS=("$DIR"/nthing-*.jpg)
+((${#WALLS[@]} == 0)) && exit 0
 CUR=$(readlink -f "$HOME/.cache/nthing-current" 2>/dev/null || echo "")
 for i in "${!WALLS[@]}"; do
   if [ "$(readlink -f "${WALLS[$i]}")" = "$CUR" ]; then
