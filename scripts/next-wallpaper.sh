@@ -11,5 +11,6 @@ for i in "${!WALLS[@]}"; do
   fi
 done
 NEXT="${NEXT:-${WALLS[0]}}"
+mkdir -p "$HOME/.cache"
 ln -sf "$(readlink -f "$NEXT")" "$HOME/.cache/nthing-current"
 exec "$HOME/dotfiles/scripts/set-wallpaper.sh" "$NEXT"
