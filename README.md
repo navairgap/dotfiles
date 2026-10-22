@@ -151,3 +151,8 @@ zsh with a minimal rc — prompt, path, history size, done. a shell you can't re
 ## History
 
 the rice started life as a windows rainmeter screenshot on nothing.community and became a hyprland setup over one weekend of stubbornness. the community post is credited in the readme; the bugs are original.
+
+
+## Maintenance notes
+
+Review install scripts before running them and keep a timestamped backup plus a TTY recovery path. Validate compositor configuration before logging out. Make one change at a time and verify autostart commands do not block the session.
