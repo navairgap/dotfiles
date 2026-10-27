@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # set a nthing wallpaper via swww — cycles if no arg given
 set -e
-DIR="$HOME/dotfiles/wallpapers"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/wallpapers"
 
 if [ $# -ge 1 ]; then
   if [ ! -f "$1" ]; then
