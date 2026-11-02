@@ -6,6 +6,11 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="$HOME/.config"
 BACKUP="$CONFIG/backup-$(date +%Y%m%d-%H%M%S)"
 
+if ! command -v pacman >/dev/null 2>&1; then
+  printf 'error: this installer requires Arch Linux (pacman was not found); no files were changed.\n' >&2
+  exit 1
+fi
+
 bold()  { printf "\033[1m%s\033[0m\n" "$*"; }
 dot()   { printf "  \033[31m●\033[0m %s\n" "$*"; }
 
@@ -23,12 +28,7 @@ PKGS=(
 )
 
 dot "installing packages (${#PKGS[@]})…"
-if command -v pacman >/dev/null; then
-  sudo pacman -S --needed --noconfirm "${PKGS[@]}"
-else
-  echo "  ! pacman not found — this installer targets Arch."
-  echo "    Install these manually: ${PKGS[*]}"
-fi
+sudo pacman -S --needed --noconfirm "${PKGS[@]}"
 
 # ---------- backup ----------
 dot "backing up existing configs → $BACKUP"
