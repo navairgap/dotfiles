@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # cycle to the next nthing wallpaper
-DIR="$HOME/dotfiles/wallpapers"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+DIR="$REPO_DIR/wallpapers"
 shopt -s nullglob
 WALLS=("$DIR"/nthing-*.jpg)
 ((${#WALLS[@]} == 0)) && exit 0
@@ -13,4 +14,4 @@ done
 NEXT="${NEXT:-${WALLS[0]}}"
 mkdir -p "$HOME/.cache"
 ln -sf "$(readlink -f "$NEXT")" "$HOME/.cache/nthing-current"
-exec "$HOME/dotfiles/scripts/set-wallpaper.sh" "$NEXT"
+exec "$REPO_DIR/scripts/set-wallpaper.sh" "$NEXT"
