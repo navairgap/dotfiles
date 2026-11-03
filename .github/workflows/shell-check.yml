@@ -16,3 +16,6 @@ jobs:
           bash -n waybar/*.sh
       - name: Check patch whitespace
         run: git diff --check
+
+      - name: Exercise installer in an isolated home
+        run: bash tests/install-smoke.sh
