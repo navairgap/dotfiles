@@ -7,7 +7,7 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/home" "$TMP/bin"
 
-for command_name in sudo pgrep swww fc-cache; do
+for command_name in sudo pacman pgrep swww fc-cache; do
   cat > "$TMP/bin/$command_name" <<'STUB'
 #!/usr/bin/env bash
 exit 0
