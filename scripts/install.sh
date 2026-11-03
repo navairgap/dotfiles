@@ -59,9 +59,9 @@ link fastfetch       "$CONFIG/fastfetch"
 link gtk-3.0         "$CONFIG/gtk-3.0"
 
 # scripts into place
-mkdir -p "$HOME/bin" 2>/dev/null || true
-ln -sf "$REPO_DIR/scripts/make-wallpaper.sh" "$HOME/.local/bin/make-wallpaper" 2>/dev/null || true
-ln -sf "$REPO_DIR/scripts/set-wallpaper.sh" "$HOME/.local/bin/set-wallpaper" 2>/dev/null || true
+mkdir -p "$HOME/bin" "$HOME/.local/bin"
+ln -sf "$REPO_DIR/scripts/make-wallpaper.sh" "$HOME/.local/bin/make-wallpaper"
+ln -sf "$REPO_DIR/scripts/set-wallpaper.sh" "$HOME/.local/bin/set-wallpaper"
 chmod +x "$REPO_DIR"/scripts/*.sh "$REPO_DIR"/waybar/*.sh 2>/dev/null || true
 
 # ---------- wallpaper ----------
