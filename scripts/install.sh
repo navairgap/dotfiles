@@ -46,9 +46,27 @@ fc-cache -f >/dev/null 2>&1 || true
 # ---------- symlink ----------
 dot "linking configs…"
 link() {  # link <repo-relative> <target>
-  mkdir -p "$(dirname "$2")"
-  ln -sfn "$REPO_DIR/$1" "$2"
-  echo "    $2 → $1"
+  local source="$REPO_DIR/$1"
+  local target="$2"
+  local backup_target="$BACKUP/$(basename "$target")"
+  mkdir -p "$(dirname "$target")"
+
+  if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
+    echo "    $target already points to $1"
+    return
+  fi
+
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    if [ -e "$backup_target" ] || [ -L "$backup_target" ]; then
+      printf 'error: backup path already exists: %s\\n' "$backup_target" >&2
+      return 1
+    fi
+    mv "$target" "$backup_target"
+    echo "    backed up existing $target → $backup_target"
+  fi
+
+  ln -s "$source" "$target"
+  echo "    $target → $1"
 }
 link hypr            "$CONFIG/hypr"
 link waybar          "$CONFIG/waybar"
