@@ -8,7 +8,12 @@ import QtQuick
 Singleton {
     id: root
 
-    property string loc: Quickshell.env("PULSE_LATLON") ?? ""
+    // the place: an env override wins, but only if it looks like "lat,lon" — garbage in it would poison every fetch;
+    // else by ip (ipinfo.io)
+    readonly property string envLoc: Quickshell.env("PULSE_LATLON") ?? ""
+    property string loc: envLoc.match(/^-?[\d.]+,-?[\d.]+$/) ? envLoc : ""
+
+    property int tries: 0 // failed refreshes in a row — the wait doubles each time, capped at an hour
     property var now: null     // { temp, feels, code, wind, windDir, gusts, humidity, pressure, rain, day }
     property var days: []      // [{ date, code, max, min, rain }]
     property var sun: null     // { rise, set } — today's Dates
@@ -41,11 +46,11 @@ Singleton {
     Process {
         id: where
         command: ["curl", "-sf", "--max-time", "10", "https://ipinfo.io/loc"]
-        onExited: code => { if (code !== 0) retry.restart(); }
+        onExited: code => { if (code !== 0) root.failed(); }
         stdout: StdioCollector { onStreamFinished: if (text.trim().match(/^-?[\d.]+,-?[\d.]+$/)) root.loc = text.trim() }
     }
 
-    // open-meteo gets overloaded now and then — retry after 2 min
+    // open-meteo gets overloaded now and then — retry, waiting longer every time
     function refresh() {
         if (!loc) return where.running = true;
         const [lat, lon] = loc.split(",");
@@ -55,17 +60,21 @@ Singleton {
             + "&wind_speed_unit=ms&timezone=auto&forecast_days=5"];
         fetch.running = true;
     }
+    function failed() { tries = Math.min(tries + 1, 5); retry.restart(); }
 
-    Timer { id: retry; interval: 120000; onTriggered: root.refresh() }
+    Timer { id: retry; interval: Math.min(120000 * Math.pow(2, root.tries), 3600000); onTriggered: root.refresh() }
 
     Process {
         id: fetch
-        onExited: code => { if (code !== 0) retry.restart(); }
+        onExited: code => { if (code !== 0) root.failed(); }
         stdout: StdioCollector {
             onStreamFinished: {
                 let j;
-                try { j = JSON.parse(text); } catch (e) { return; }
+                try { j = JSON.parse(text); } catch (e) { return root.failed(); }
+                // open-meteo answers {"error":…,"reason":…} on a bad request — treat it like a network miss
                 const c = j.current, d = j.daily;
+                if (!c || !d || !Array.isArray(d.time) || !d.time.length || !Array.isArray(d.sunrise) || !d.sunrise.length) return root.failed();
+                root.tries = 0;
                 root.now = { temp: c.temperature_2m, feels: c.apparent_temperature, code: c.weather_code, wind: c.wind_speed_10m,
                     windDir: c.wind_direction_10m, gusts: c.wind_gusts_10m, humidity: c.relative_humidity_2m,
                     pressure: c.surface_pressure, rain: c.precipitation_probability, day: c.is_day === 1 };

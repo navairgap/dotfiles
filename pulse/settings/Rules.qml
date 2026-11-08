@@ -283,11 +283,17 @@ Singleton {
             + at(s.lockAfter, "loginctl lock-session") + at(s.dpmsAfter, dpms("off"), dpms("on"))
             + at(s.sleepAfter, hibernateOn ? "systemctl suspend-then-hibernate" : "systemctl suspend");
         Quickshell.execDetached(["sh", "-c", 'f="$1/hypridle.conf"; printf %s "$2" | cmp -s - "$f" && pgrep -x hypridle >/dev/null && exit; '
-                                       + 'printf %s "$2" > "$f"; pkill -x hypridle; exec hypridle -c "$f"', "sh", dir, conf]);
+                                       + 'printf %s "$2" > "$f"; systemctl --user restart pulse-hypridle.service 2>/dev/null && exit; '
+                                       + 'pkill -x hypridle; exec hypridle -c "$f"', "sh", dir, conf]);
     }
     function brightness() { Quickshell.execDetached(["brightnessctl", "-q", "set", store.brightness + "%"]); }
     function night() {
-        Quickshell.execDetached(["sh", "-c", store.night ? `pkill -x hyprsunset; exec hyprsunset -t ${store.warmth}` : "pkill -x hyprsunset"]);
+        // hyprsunset is the pulse-hyprsunset unit: it reads the warmth file at start. no systemd — spawn it here
+        Quickshell.execDetached(["sh", "-c", store.night
+            ? 'mkdir -p "$HOME/.local/state/rice"; printf \'%s\\n\' "$1" > "$HOME/.local/state/rice/warmth"; '
+              + 'systemctl --user restart pulse-hyprsunset.service 2>/dev/null && exit; pkill -x hyprsunset; exec hyprsunset -t "$1"'
+            : 'systemctl --user stop pulse-hyprsunset.service 2>/dev/null && exit; pkill -x hyprsunset',
+            "sh", String(store.warmth)]);
     }
 
     // palette: Skin repaints itself (bindings on pal); this covers what lives outside the shell

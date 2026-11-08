@@ -2,7 +2,12 @@ local vars = require("variables")
 local fn   = require("hyprland.functions")
 
 hl.on("hyprland.start", function()
-    -- shell: whichever one rice has selected
+    -- hand the session env to the user manager, then bring up the session target: the units in systemd/user/
+    -- (shell, hypridle, hyprsunset, clipboard) start with it, and a dead one restarts itself
+    hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP")
+    hl.exec_cmd("systemctl --user start graphical-session.target")
+
+    -- shell: whichever one rice has selected (rice routes through the systemd unit when there is one)
     hl.exec_cmd(vars.rice .. " start")
 
     -- nested session: the system daemons are already running on the host
@@ -12,9 +17,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
 
-    -- clipboard history
-    hl.exec_cmd("wl-paste --type text --watch cliphist store")
-    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+    -- clipboard history: the pulse-clipboard unit (started with the session target); watchers respawn if they die
 
     -- empty trash older than 30 days
     hl.exec_cmd("trash-empty 30")
@@ -30,7 +33,7 @@ hl.on("hyprland.start", function()
     -- forward bluetooth media commands into mpris
     hl.exec_cmd("mpris-proxy")
 
-    -- hypridle starts the shell (Rules.idle): its timings come from the house rules → ~/.config/pulse/hypridle.conf
+    -- hypridle and hyprsunset are units too: the shell writes their config (Rules.idle/night) and restarts them
 end)
 
 -- bitwarden and pip get sized to fit, on open and on title change

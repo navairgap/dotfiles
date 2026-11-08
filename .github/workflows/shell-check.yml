@@ -14,6 +14,20 @@ jobs:
         run: |
           bash -n scripts/*.sh
           sh -n rice/rice
+      - name: Lint shell
+        run: shellcheck scripts/*.sh rice/rice
+      - name: Check QML syntax
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq qt6-declarative-dev-tools qt6-tools-dev-tools
+          fail=0
+          for f in $(find pulse rice sddm -name '*.qml'); do
+            if qmllint "$f" 2>&1 | grep -q '\[syntax\]'; then
+              echo "::error file=$f::qml syntax error"
+              fail=1
+            fi
+          done
+          exit $fail
       - name: Check patch whitespace
         run: git diff --check
 

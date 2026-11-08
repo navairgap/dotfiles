@@ -46,8 +46,10 @@ Singleton {
     FileView { id: cur; path: root.dev ? root.dev + "/brightness" : ""; blockAllReads: true; printErrors: false }
     FileView { id: max; path: root.dev ? root.dev + "/max_brightness" : ""; blockLoading: true; printErrors: false }
 
-    // brightnessctl -m: "name,class,current,percent,max"
+    // brightnessctl -m: "name,class,current,percent,max". one probe at startup; a desktop or a late-appearing panel
+    // gets re-asked every 10 s until something answers
     Process {
+        id: detect
         running: true
         command: ["brightnessctl", "-m", "-c", "backlight", "info"]
         stdout: StdioCollector {
@@ -59,6 +61,7 @@ Singleton {
             }
         }
     }
+    Timer { interval: 10000; running: !root.dev; repeat: true; onTriggered: detect.running = true }
     Process {
         running: !!root.dev
         command: ["udevadm", "monitor", "--udev", "--subsystem-match=backlight"]

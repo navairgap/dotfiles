@@ -1,0 +1,11 @@
+[Unit]
+Description=pulse idle daemon (hypridle)
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/hypridle -c %h/.config/pulse/hypridle.conf
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

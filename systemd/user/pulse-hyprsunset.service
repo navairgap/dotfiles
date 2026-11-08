@@ -1,0 +1,13 @@
+[Unit]
+Description=pulse night light (hyprsunset)
+PartOf=graphical-session.target
+
+[Service]
+# the warmth lives in ~/.local/state/rice/warmth — Rules.night() writes it and restarts the unit,
+# so a temp change is a restart, not a fight with the running daemon
+ExecStart=/bin/sh -c 'exec hyprsunset -t "$(cat %h/.local/state/rice/warmth 2>/dev/null || echo 4000)"'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

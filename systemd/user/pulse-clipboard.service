@@ -1,0 +1,11 @@
+[Unit]
+Description=pulse clipboard history (cliphist watchers)
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/bin/sh -c 'wl-paste --type text --watch cliphist store & wl-paste --type image --watch cliphist store & wait'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

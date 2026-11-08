@@ -1,0 +1,11 @@
+[Unit]
+Description=pulse shell (quickshell)
+PartOf=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/qs -p %h/.config/quickshell/pulse
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

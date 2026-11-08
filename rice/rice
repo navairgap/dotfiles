@@ -58,12 +58,18 @@ Type=Fixed
     echo "$color" > "$dest/color"
 }
 
+# the shell runs under systemd (systemd/user/pulse-shell.service): a crash self-heals in two seconds. without a user
+# manager (another distro, a container) rice runs qs itself, the old way
+systemd_p() { command -v systemctl >/dev/null 2>&1 && systemctl --user >/dev/null 2>&1; }
+unit() { systemd_p && systemctl --user "$@" pulse-shell.service >/dev/null 2>&1; }
+
 # take down every instance of the shell and wait for it: qs kill only drops one, and stray copies draw everything
 # twice and hold the dbus names (notifications, tray) — a fresh shell would never get them
 pids() { qs list --all 2>/dev/null | awk -v p="$q/$1/shell.qml" '$1 == "Process" { pid = $3 } $1 == "Config" && $3 == p { print pid }'; }
 stop() {
     mine=$(pids "$1")
     [ -n "$mine" ] || return 0
+    # shellcheck disable=SC2086  # $mine is several pids at once
     kill $mine 2>/dev/null
     for _ in 1 2 3 4 5 6 7 8 9 10; do
         alive=
@@ -71,23 +77,28 @@ stop() {
         [ -n "$alive" ] || return 0
         sleep 0.2
     done
+    # shellcheck disable=SC2086  # several pids
     kill -9 $mine 2>/dev/null
 }
 
 case $1 in
     "") echo "$cur" ;;
     list) for f in "$q"/*/rice.json; do basename "$(dirname "$f")"; done ;;
-    start) [ -n "$(pids "$cur")" ] && exit 0; mkdir -p "$state"; term "$cur"; exec qs -p "$q/$cur" -d ;;
-    restart) term "$cur"; stop "$cur"; hyprctl reload >/dev/null; exec qs -p "$q/$cur" -d ;; # reload also clears a stuck hypr error plaque
-    kill) stop "$cur" ;;
+    start) [ -n "$(pids "$cur")" ] && exit 0; mkdir -p "$state"; term "$cur"
+        if unit start; then exit 0; fi
+        exec qs -p "$q/$cur" -d ;;
+    restart) term "$cur"
+        if unit restart; then hyprctl reload >/dev/null; exit 0; fi  # reload also clears a stuck hypr error plaque
+        stop "$cur"; hyprctl reload >/dev/null; exec qs -p "$q/$cur" -d ;;
+    kill) if unit stop; then exit 0; fi; stop "$cur" ;;
     switch)
         [ -f "$q/$2/rice.json" ] || { echo "rice: no shell \"$2\"" >&2; exit 1; }
         mkdir -p "$state"
         echo "$2" > "$state/shell"
-        stop "$cur"
+        if ! unit stop; then stop "$cur"; fi
         hyprctl reload >/dev/null # wipe the last shell's look: the new one stacks its own on top of the hypr config
         term "$2"
-        exec qs -p "$q/$2" -d ;;
+        exec qs -p "$q/$2" -d ;; # the unit only knows pulse — another shell runs unsupervised
     lock) pgrep -f '^qs .*/lock[.]qml' >/dev/null || exec qs -p "$q/$cur/lock.qml" ;;
     *) sed -n '2,8s/^# //p' "$0"; exit 1 ;;
 esac

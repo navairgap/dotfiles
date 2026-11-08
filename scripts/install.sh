@@ -19,7 +19,7 @@ BACKUP="$CONFIG/backup-$(date +%Y%m%d-%H%M%S)"
 LOG_DIR="$STATE/pulse"
 mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/install-$(date +%Y%m%d-%H%M%S).log"
-ls -1t "$LOG_DIR"/install-*.log 2>/dev/null | tail -n +6 | xargs -r rm -f || true
+find "$LOG_DIR" -type f -name 'install-*.log' | sort -r | tail -n +6 | xargs -r rm -f || true
 
 # colors only when stdout is a real terminal — checked before the redirect, so the log stays plain text
 C_TTY=0; [ -t 1 ] && C_TTY=1
@@ -83,13 +83,19 @@ LINKS=(
   "pulse/term/gtk-3.0/gtk.css     $CONFIG/gtk-3.0/gtk.css"
   "pulse/term/gtk-4.0/gtk.css     $CONFIG/gtk-4.0/gtk.css"
   "gtk-3.0/settings.ini           $CONFIG/gtk-3.0/settings.ini"
+  # the session units: the shell, hypridle, hyprsunset and the clipboard watchers restart themselves
+  "systemd/user/pulse-shell.service       $CONFIG/systemd/user/pulse-shell.service"
+  "systemd/user/pulse-hypridle.service    $CONFIG/systemd/user/pulse-hypridle.service"
+  "systemd/user/pulse-hyprsunset.service  $CONFIG/systemd/user/pulse-hyprsunset.service"
+  "systemd/user/pulse-clipboard.service   $CONFIG/systemd/user/pulse-clipboard.service"
 )
 
 # ---------- helpers ----------
 link() {  # link <repo-relative> <absolute-target>
   local source="$REPO_DIR/$1"
   local target="$2"
-  local backup_target="$BACKUP/$(basename "$target")"
+  local backup_target
+  backup_target="$BACKUP/$(basename "$target")"
   mkdir -p "$(dirname "$target")"
 
   if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
@@ -121,6 +127,7 @@ extras() {  # --with or a question → EXT, installed apart from the AUR core
   local w
   for w in ${WITH//,/ }; do
     [ -n "${EXTRA[$w]-}" ] || { printf 'no such extra: %s (available: %s)\n' "$w" "${!EXTRA[*]}"; exit 1; }
+    # shellcheck disable=SC2206  # the extra is a package list, split on purpose
     EXT+=(${EXTRA[$w]})
   done
 }
@@ -131,6 +138,7 @@ packages() {
   # pulseaudio modules fight pipewire-pulse — get them out first, pacman won't offer the swap
   local pa
   pa=$(pacman -Qq pulseaudio-{bluetooth,jack,lirc,rtp,zeroconf,equalizer} 2>/dev/null || true)
+  # shellcheck disable=SC2086  # $pa is several package names at once
   [ -z "$pa" ] || sudo pacman -R --noconfirm $pa
   if pacman -Qq pulseaudio >/dev/null 2>&1; then
     dot "pulseaudio is installed; pacman will ask to remove it (pipewire-pulse takes over) — answer yes"
@@ -162,6 +170,10 @@ services() {
   systemctl is-enabled -q display-manager.service 2>/dev/null || sudo systemctl enable sddm
   systemctl --user enable pipewire-pulse.socket wireplumber ydotool
   sudo usermod -aG input,video "$USER"  # ydotool (uinput) and brightnessctl (backlight)
+  # the session units: hyprland starts them with graphical-session.target (hypr/hyprland/execs.lua); if one
+  # dies it restarts itself — the shell included, so a crash heals in ~2 s instead of a dead desktop
+  systemctl --user daemon-reload
+  systemctl --user enable pulse-shell.service pulse-hypridle.service pulse-hyprsunset.service pulse-clipboard.service
   xdg-user-dirs-update
 }
 
