@@ -219,7 +219,7 @@ PanelWindow {
                                             Behavior on color { ColorAnimation { duration: Skin.t } }
                                             Lb { anchors.centerIn: parent; text: "×"; color: xh.hovered ? Skin.ink : Skin.grey; px: 14 }
                                             HoverHandler { id: xh; cursorShape: Qt.PointingHandCursor }
-                                            TapHandler { onTapped: tile.modelData.wayland.close() }
+                                            TapHandler { onTapped: tile.modelData.wayland?.close() } // it may already be gone
                                         }
                                         HoverHandler { id: hover; cursorShape: Qt.PointingHandCursor }
                                         TapHandler { onTapped: root.focus(tile.modelData.address) }

@@ -70,7 +70,7 @@ PanelWindow {
             enabled: root.menuItems.length > 0
             onClicked: menu.openAt(mouse.x, mouse.y, root.menuItems)
         }
-        Menu { id: menu }
+        Menu { id: menu; z: 100 } // over the widgets — it's declared first, z puts it on top
 
         Row {
             x: 182

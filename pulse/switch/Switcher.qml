@@ -53,8 +53,9 @@ PanelWindow {
         const w = wins[sel];
         shown = false;
         sel = 0;
-        // activate, not dispatch: a minimized window comes back instead of just getting focus
-        if (w) w.wayland.activate();
+        // activate, not dispatch: a minimized window comes back instead of just getting focus.
+        // it may have died between selection and release — what's left is an empty wrapper
+        if (w?.wayland) w.wayland.activate();
     }
 
     visible: t > 0
@@ -72,7 +73,8 @@ PanelWindow {
             id: strip
             y: (parent.height - height) / 2
             x: (parent.width - width) / 2
-            width: kids.width + 24
+            width: Math.min(parent.width - 60, kids.width + 24)
+            clip: kids.width + 24 > parent.width - 60 // more windows than the screen holds — cut, don't spill
             height: 92
             opacity: root.t
             radius: Skin.corner(46)
@@ -92,8 +94,8 @@ PanelWindow {
                         id: card
                         required property var modelData
                         readonly property bool on: index === root.sel
-                        readonly property string cls: modelData.lastIpcObject?.class ?? modelData.wayland.appId ?? ""
-                        readonly property bool min: modelData.wayland.minimized
+                        readonly property string cls: modelData.lastIpcObject?.class ?? modelData.wayland?.appId ?? ""
+                        readonly property bool min: modelData.wayland?.minimized ?? false
                         width: 200
                         height: 68
                         radius: Skin.corner(34)

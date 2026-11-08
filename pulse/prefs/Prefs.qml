@@ -8,6 +8,7 @@ import qs
 import qs.components
 import qs.services
 import qs.settings
+import Qt5Compat.GraphicalEffects
 import "../edge/flash.js" as FlashShape
 
 // pulse settings: Super+I. not a form — objects. on the left a column of Doto words like in the power menu — the picked one large,

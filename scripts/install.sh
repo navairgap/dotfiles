@@ -61,6 +61,8 @@ PKGS=(
   gpu-screen-recorder ydotool libnotify trash-cli jq curl python
   # terminal side
   kitty fish starship fastfetch btop cava eza zoxide direnv thunar pavucontrol
+  # glow on the edge strips (qt5compat's Glow — QtQuick.Effects only has MultiEffect)
+  qt6-5compat
   # fonts + icon/color base
   ttf-jetbrains-mono-nerd noto-fonts noto-fonts-cjk noto-fonts-emoji papirus-icon-theme adw-gtk-theme
 )

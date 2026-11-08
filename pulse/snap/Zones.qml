@@ -42,10 +42,12 @@ PanelWindow {
         Rectangle {
             // the overlay lands on the focused screen, the zones are fractions of that monitor — same thing
             visible: !!root.r && !!root.mon && root.t > 0
-            x: root.mon ? root.mon.width * root.r[0] / 100 : 0
-            y: root.mon ? root.mon.height * root.r[1] / 100 : 0
-            width: root.mon ? root.mon.width * root.r[2] / 100 : 0
-            height: root.mon ? root.mon.height * root.r[3] / 100 : 0
+            // r and mon are guarded together — a binding touching r[0] with r null would throw on every tick
+            readonly property var box: root.r && root.mon ? root.r : null
+            x: box && root.mon ? root.mon.width * box[0] / 100 : 0
+            y: box && root.mon ? root.mon.height * box[1] / 100 : 0
+            width: box && root.mon ? root.mon.width * box[2] / 100 : 0
+            height: box && root.mon ? root.mon.height * box[3] / 100 : 0
             opacity: root.t * 0.9
             radius: Skin.corner(24)
             color: "transparent"

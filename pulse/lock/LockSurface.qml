@@ -111,11 +111,23 @@ WlSessionLockSurface {
         }
 
         // power: a dot at the bottom right — sleep, reboot, off, the power menu's own actions without the session
-        // around them. tap the dot, three circles rise; tap it again and they go
+        // around them. tap the dot, three circles rise above it; tap it again and they go
         property bool pw: false
+        Rectangle {
+            anchors { right: parent.right; rightMargin: 44; bottom: parent.bottom; bottomMargin: 44 }
+            width: 34
+            height: 34
+            radius: 17
+            color: root.pw ? Skin.fg : "transparent"
+            border { width: 1; color: Skin.s3 }
+            Behavior on color { ColorAnimation { duration: Skin.t } }
+            Icon { anchors.centerIn: parent; text: "\u{F0425}"; font.pixelSize: 16; color: root.pw ? Skin.ink : Skin.grey }
+            HoverHandler { cursorShape: Qt.PointingHandCursor }
+            TapHandler { onTapped: root.pw = !root.pw }
+        }
         Row {
             anchors { right: parent.right; rightMargin: 44 }
-            y: parent.height - 44 - 68 + (root.pw ? 0 : 68)
+            y: parent.height - (root.pw ? 150 : 44) // clear of the dot when up, folded onto it when down
             spacing: 18
             opacity: root.pw ? 1 : 0
             Behavior on y { NumberAnimation { duration: Skin.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Skin.glide } }

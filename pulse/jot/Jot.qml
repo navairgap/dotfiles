@@ -7,8 +7,9 @@ import qs
 import qs.components
 
 // jot: sticky notes, a stack of cards you type straight into. opened from the desktop menu (right-click the
-// wallpaper) — no bind of its own, it's a scratchpad, not a destination. one file, state/jot.json; every edit
-// lands the moment you make it, there is no save button to forget
+// wallpaper) — no bind of its own, it's a scratchpad, not a destination. one file, state/jot.json.
+// the text lives in the TextArea while you type — the model only gets it on focus loss or closing: writing
+// back on every keystroke would rebuild every card under the cursor and eat the caret. no save button to forget
 PanelWindow {
     id: root
 
@@ -16,6 +17,8 @@ PanelWindow {
     property real t: shown ? 1 : 0
     Behavior on t { NumberAnimation { duration: Skin.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Skin.glide } }
     property var notes: [] // [{ t, d }] — text and when it was written
+    property int dirty: -1 // the card being typed: its text is in the widget, not the model yet
+    property var dirtyArea: null
 
     FileView {
         id: file
@@ -26,25 +29,40 @@ PanelWindow {
         }
     }
     function save() { file.setText(JSON.stringify(root.notes)); }
+    // the editor hands its text over; nothing happens when nothing changed
+    function commit() {
+        if (dirty < 0 || !dirtyArea) { dirty = -1; dirtyArea = null; return; }
+        const text = dirtyArea.text;
+        const cur = notes[dirty];
+        if (cur && cur.t !== text) {
+            const next = notes.slice();
+            next[dirty] = { t: text, d: cur.d };
+            notes = next;
+            save();
+        }
+        dirty = -1;
+        dirtyArea = null;
+    }
     function add() {
+        commit(); // flush whatever was being typed first, or it lands in the wrong card after the rebuild
         notes = notes.concat([{ t: "", d: new Date().toISOString() }]);
-        // focus lands after the delegate exists
+        // focus lands after the delegate exists — field is the editor, aliased off the card
         Qt.callLater(() => {
-            const items = [...cards.children];
+            const items = cards.children;
             const last = items[items.length - 1];
-            if (last?.area) last.area.forceActiveFocus();
+            if (last?.field) last.field.forceActiveFocus();
         });
     }
-    function drop(i) { notes = notes.filter((_, k) => k !== i); }
+    function drop(i) {
+        commit();
+        notes = notes.filter((_, k) => k !== i);
+        save();
+    }
 
     function open() { shown = true; }
-    function close() { shown = false; }
+    function close() { commit(); shown = false; }
     function toggle() { shown ? close() : open(); }
-
-    onVisibleChanged: if (visible) notes = notes // touch: the empty-state label re-reads
-
-    readonly property date now: new Date()
-    Timer { running: root.shown; interval: 30000; repeat: true; onTriggered: root.now = new Date() }
+    onVisibleChanged: if (!visible) commit()
 
     visible: t > 0
     anchors { left: true; right: true; top: true; bottom: true }
@@ -113,6 +131,7 @@ PanelWindow {
                             id: note
                             required property int index
                             required property var modelData
+                            property alias field: area
                             width: cards.width
                             height: Math.max(96, area.topPadding + area.bottomPadding + area.contentHeight + 56)
                             radius: Skin.corner(28)
@@ -127,12 +146,12 @@ PanelWindow {
                                 background: null
                                 wrapMode: TextArea.Wrap
                                 text: note.modelData.t
-                                onTextChanged: if (text !== root.notes[note.index]?.t) {
-                                    const next = root.notes.slice();
-                                    next[note.index] = { t: text, d: root.notes[note.index].d };
-                                    root.notes = next;
-                                    root.save();
+                                onTextChanged: {
+                                    // mark the card dirty; the model catches up on blur or close
+                                    root.dirty = note.index;
+                                    root.dirtyArea = area;
                                 }
+                                onEditingFinished: root.commit()
                                 color: Skin.fg
                                 selectionColor: Skin.s3
                                 font { family: Skin.ui; pixelSize: 16 }

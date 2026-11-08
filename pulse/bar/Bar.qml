@@ -181,9 +181,11 @@ PanelWindow {
                             cursorShape: Qt.PointingHandCursor
                             acceptedButtons: Qt.LeftButton | Qt.RightButton
                             onClicked: m => {
-                                if (m.button === Qt.RightButton && sni.modelData.hasMenu)
-                                    sni.modelData.display(root, sni.mapToItem(root, sni.x, sni.y).x, sni.mapToItem(root, sni.x, sni.y).y);
-                                else sni.modelData.activate();
+                                if (m.button === Qt.RightButton && sni.modelData.hasMenu) {
+                                    // display() takes coordinates relative to the window: pill sits at 14,14 in the stage
+                                    const q = sni.mapToItem(pill, sni.width / 2, sni.height / 2);
+                                    sni.modelData.display(root, q.x + pill.x, q.y + pill.y);
+                                } else sni.modelData.activate();
                             }
                         }
                     }
