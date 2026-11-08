@@ -1,0 +1,31 @@
+# pulse: ~/dir › — path grey, arrow white, error red. colors are ansi numbers, so kitty's light theme can
+# reshuffle them on its own. ~/.config/starship.toml points here while pulse is the live shell (rice)
+add_newline = false
+format = "$directory$git_branch$git_status$cmd_duration$character"
+
+[directory]
+style = "white"
+truncation_length = 3
+truncation_symbol = "…/"
+read_only = " ●"
+read_only_style = "red"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+symbol = ""
+style = "bright-white"
+format = "[$branch]($style) "
+
+[git_status]
+style = "bright-black"
+format = "([$all_status$ahead_behind]($style) )"
+
+[cmd_duration]
+min_time = 2000
+style = "bright-black"
+format = "[$duration]($style) "
+
+[character]
+success_symbol = "[›](bright-white)"
+error_symbol = "[›](red)"
+vimcmd_symbol = "[‹](bright-white)"

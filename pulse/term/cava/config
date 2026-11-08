@@ -1,0 +1,45 @@
+# cava config — tuned for smooth but not sleepy
+
+[general]
+# framerate 1-144: higher is smoother and hungrier
+framerate = 60
+
+[input]
+# pulse, alsa, fifo or portaudio
+method = pulse
+# auto-detect unless i say otherwise
+source = auto
+
+[output]
+# ncurses, terminal, raw or circle
+method = ncurses
+style = stereo
+bar_width = 1
+bar_spacing = 1
+
+[color]
+# pulse: one color — the terminal's own text (kitty's light theme recolors it by itself), no gradient.
+# terminal cava can't draw ● dots, so these are thin bars with gaps; the dot matrix is the dots script next
+# door (in fish, `cava` IS that script)
+foreground = default
+
+[smoothing]
+# noise reduction 0-100: higher is smoother, slower to react. 77 is stock; 85 sits right for me
+noise_reduction = 85
+
+# monstercat smoothing between neighboring bars, 0 or 1
+monstercat = 1
+
+# wave motion across the bars, 0 or 1
+waves = 0
+
+# how fast bars fall, 0-200. 100 is normal gravity; 150 drops quicker, 50 lazier
+gravity = 120
+
+[eq]
+# the low end is louder by nature, so i shave it a little and lift the top
+1 = 0.8
+2 = 0.9
+3 = 1.0
+4 = 1.1
+5 = 1.2

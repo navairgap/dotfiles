@@ -13,7 +13,7 @@ jobs:
       - name: Check shell syntax
         run: |
           bash -n scripts/*.sh
-          bash -n waybar/*.sh
+          sh -n rice/rice
       - name: Check patch whitespace
         run: git diff --check
 

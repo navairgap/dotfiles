@@ -1,0 +1,93 @@
+import QtQuick
+import qs
+import qs.components
+
+// recording settings under the tiles (right click on record): area, audio, fps, quality, cursor.
+// they live in skin.state; the screenshotter's recorder reads the same ones (sys.recArgs)
+Rectangle {
+    id: root
+    signal touched // any click inside pins the panel
+    signal start
+
+    readonly property var st: Skin.state
+
+    height: list.height + 32
+    radius: Skin.corner(30)
+    color: Skin.s2
+
+    Column {
+        id: list
+        x: 16
+        y: 16
+        width: parent.width - 32
+        spacing: 8
+
+        Lb { x: 4; text: "recording · ~/videos" }
+
+        Choice { label: "area"; opts: ["screen", "region"]; cur: root.st.recArea; onPicked: i => root.st.recArea = i }
+        Choice { label: "audio"; opts: ["off", "sys", "mic", "both"]; cur: root.st.recAudio; onPicked: i => root.st.recAudio = i }
+        Choice { label: "fps"; opts: Sys.recFps; cur: Math.max(0, Sys.recFps.indexOf(root.st.recFps)); onPicked: i => root.st.recFps = Sys.recFps[i] }
+        Choice { label: "quality"; opts: ["med", "high", "max", "ultra"]; cur: root.st.recQuality; onPicked: i => root.st.recQuality = i }
+        Choice { label: "cursor"; opts: ["on", "off"]; cur: root.st.recCursor ? 0 : 1; onPicked: i => root.st.recCursor = i === 0 }
+
+        // start/stop; while recording — a red dot, the only red on the panel
+        Rectangle {
+            width: list.width
+            height: 54
+            radius: Skin.corner(27)
+            color: Skin.fg
+            Row {
+                anchors.centerIn: parent
+                spacing: 10
+                Rectangle { visible: Sys.rec; anchors.verticalCenter: parent.verticalCenter; width: 10; height: 10; radius: 5; color: Skin.accent }
+                Lb { anchors.verticalCenter: parent.verticalCenter; text: Sys.rec ? "stop recording" : "start recording"; color: Skin.ink }
+            }
+            TapHandler { onTapped: root.start() }
+            HoverHandler { cursorShape: Qt.PointingHandCursor }
+        }
+    }
+
+    // choice row: label on the left, the white fill slides to the picked cell — like the power modes
+    component Choice: Item {
+        id: ch
+        property string label
+        property var opts: []
+        property int cur
+        signal picked(int i)
+        width: list.width
+        height: 44
+        Lb { x: 4; anchors.verticalCenter: parent.verticalCenter; text: ch.label; px: 10 }
+        Rectangle {
+            id: track
+            x: 96
+            width: parent.width - x
+            height: parent.height
+            radius: height / 2
+            color: Skin.s1
+            readonly property real cell: (width - 8) / ch.opts.length
+            Rectangle {
+                x: 4 + track.cell * ch.cur
+                y: 4
+                width: track.cell
+                height: parent.height - 8
+                radius: height / 2
+                color: Skin.fg
+                Behavior on x { NumberAnimation { duration: Skin.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Skin.glide } }
+            }
+            Repeater {
+                model: ch.opts
+                Item {
+                    id: cell
+                    required property int index
+                    required property var modelData
+                    x: 4 + track.cell * index
+                    width: track.cell
+                    height: track.height
+                    Lb { anchors.centerIn: parent; px: 10; text: cell.modelData; color: ch.cur === cell.index ? Skin.ink : Skin.grey }
+                    TapHandler { onTapped: { root.touched(); ch.picked(cell.index); } }
+                    HoverHandler { cursorShape: Qt.PointingHandCursor }
+                }
+            }
+        }
+    }
+}

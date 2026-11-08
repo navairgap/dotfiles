@@ -6,3 +6,8 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+
+# your own binds and overrides, survives git pull
+hypr/user.lua
+# fontconfig cache artifact
+fonts/.uuid

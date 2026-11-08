@@ -1,0 +1,7 @@
+#%PAM-1.0
+# pulse lock: password via pam_unix, faillock keeps count of the failures
+
+auth    required                    pam_faillock.so     preauth
+auth    [success=1 default=bad]     pam_unix.so         nullok
+auth    [default=die]               pam_faillock.so     authfail
+auth    required                    pam_faillock.so     authsucc
