@@ -201,6 +201,7 @@ Singleton {
             property int rounding: 20      // hypr windows
             property int corners: 100      // shell panel corners, % of their own; circles stay circles (Skin.corner)
             property bool edges: true      // edge light strips (volume/brightness, flashes, progress)
+            property string flash: "breathe" // the notification flash pattern (prefs → edge lights, edge/flash.js)
             property int briSteps: 20      // brightness keys: ticks on the scale, 40/20/10 — steps of 2.5/5/10 %
             property bool quickHover: true // quick settings on hover at the right edge
             property bool deckHover: true  // deck — the bottom-center panel, slides out on edge hover

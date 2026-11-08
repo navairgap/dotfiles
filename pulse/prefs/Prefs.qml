@@ -8,6 +8,7 @@ import qs
 import qs.components
 import qs.services
 import qs.settings
+import "../edge/flash.js" as FlashShape
 
 // pulse settings: Super+I. not a form — objects. on the left a column of Doto words like in the power menu — the picked one large,
 // with a red dot. on the right the section live: home — a bento 3 × 3 mock-up, deck — a screen with a panel at its edge, windows —
@@ -19,11 +20,12 @@ PanelWindow {
     id: root
 
     property int sel: 0
+    property string flashHover: "" // the edge-lights pattern under the cursor, else the applied one
     signal wallRequested // wallpaper has its own screen (wall/Walls), shell.qml opens it
-    readonly property var sections: ["HOME", "DECK", "BAR", "LOOK", "STYLE", "WINDOWS", "DISPLAY", "AUDIO", "POWER", "INPUT", "IDLE", "SHELL"]
+    readonly property var sections: ["HOME", "DECK", "BAR", "LOOK", "EDGE LIGHTS", "STYLE", "WINDOWS", "DISPLAY", "AUDIO", "POWER", "INPUT", "IDLE", "SHELL"]
     readonly property string moves: "shift ←→ move · ↵ swap · del drop · drag"
     readonly property string rings: "drag round the rings · scroll"
-    readonly property var hints: [moves, moves, moves, "", "hover to preview · ↵ or click sets it", rings, "drag a screen to move it · " + rings, "click or ←→ a device", "↵ or click a mode", rings, "drag the marks", ""]
+    readonly property var hints: [moves, moves, moves, "", "hover a pattern — the strip plays it", "hover to preview · ↵ or click sets it", rings, "drag a screen to move it · " + rings, "click or ←→ a device", "↵ or click a mode", rings, "drag the marks", ""]
     readonly property var r: Rules.store
 
     // glyphs for the home widgets, the deck sections and the bar tray
@@ -755,6 +757,99 @@ PanelWindow {
             }
         }
 
+        // ---- EDGE LIGHTS: how the strip up top announces a notification. the preview plays the pattern under the
+        // cursor with the same math the real strip runs (edge/flash.js) — what you see is what you get ----
+        Page {
+            k: 4
+            caption: "edge lights · the notification flash"
+
+            Column {
+                spacing: 30
+
+                Item {
+                    width: 640
+                    height: 52
+
+                    Seg {
+                        id: prev
+                        x: 20
+                        y: 6
+                        width: 600
+                        height: 8
+                        n: 12
+                        on: Skin.fg
+                        layer.enabled: true
+                        layer.effect: Glow {}
+                        property real ph: 0
+                        SequentialAnimation on ph {
+                            loops: Animation.Infinite
+                            NumberAnimation { from: 0; to: 1; duration: 3000 }
+                        }
+                        readonly property string live: root.flashHover || Skin.state.flash || "breathe"
+                        readonly property var sh: FlashShape.shape(live, ph)
+                        f: sh.f
+                        opacity: sh.o
+                    }
+                    Lb {
+                        x: 20
+                        y: 30
+                        text: prev.live + (prev.live === (Skin.state.flash || "breathe") ? " · live" : " · preview")
+                        px: 10
+                        opacity: 0.7
+                    }
+                }
+
+                Row {
+                    spacing: 14
+
+                    Repeater {
+                        model: FlashShape.NAMES
+
+                        Rectangle {
+                            id: chip
+                            required property var modelData
+                            readonly property bool on: (Skin.state.flash || "breathe") === modelData[0]
+                            readonly property bool hot: chipHov.hovered || chip.activeFocus
+                            width: 200
+                            height: 94
+                            radius: Skin.corner(24)
+                            color: on ? Skin.fg : hot ? Skin.s3 : Skin.s2
+                            border { width: activeFocus ? 1 : 0; color: Skin.fg }
+                            Behavior on color { ColorAnimation { duration: Skin.t } }
+                            activeFocusOnTab: true
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: 7
+                                Lb { anchors.horizontalCenter: parent.horizontalCenter; text: chip.modelData[0]; color: chip.on ? Skin.ink : chip.hot ? Skin.fg : Skin.grey; px: 13 }
+                                Lb { width: chip.width - 24; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: chip.modelData[1]; color: chip.on ? Skin.mute : Skin.mute; px: 9 }
+                            }
+                            HoverHandler {
+                                id: chipHov
+                                cursorShape: Qt.PointingHandCursor
+                                onHoveredChanged: {
+                                    if (hovered) root.flashHover = chip.modelData[0];
+                                    else if (root.flashHover === chip.modelData[0]) root.flashHover = "";
+                                }
+                            }
+                            TapHandler { onTapped: Skin.state.flash = chip.modelData[0] }
+                            Keys.onPressed: e => {
+                                if (e.key !== Qt.Key_Return && e.key !== Qt.Key_Enter && e.key !== Qt.Key_Space) return;
+                                Skin.state.flash = chip.modelData[0];
+                                e.accepted = true;
+                            }
+                        }
+                    }
+                }
+
+                Row {
+                    spacing: 24
+                    Toggle { text: "edges"; on: Skin.state.edges; onFlip: Skin.state.edges = !Skin.state.edges }
+                    Lb { anchors.verticalCenter: parent.verticalCenter; text: "one cycle, three seconds · criticals flash red"; px: 10; opacity: 0.7 }
+                }
+            }
+        }
+
         // ---- STYLE: where the colour comes from and where it lands. on top — the desktop in the palette of the swatch under the
         // cursor or in focus (none — the current one): bar, quick settings, kitty, player, a Pulse strip; to its right the roles as
         // callouts, like on a blueprint: which colour goes where. under it the source and the theme; then what the source holds: the
@@ -763,7 +858,7 @@ PanelWindow {
         // swatches by index: a fresh Skin.styles on every pick doesn't rebuild the circles, and focus stays where it was ----
         Page {
             id: tint
-            k: 4
+            k: 5
             property Item hot: null // the swatch under the cursor or in focus
             readonly property var p: hot?.item.pal ?? Skin.pal
             readonly property string src: Skin.state.paint === "scheme" ? (Skin.pal.group === "more" ? "" : Skin.pal.group + " ") + Skin.pal.name
@@ -875,7 +970,7 @@ PanelWindow {
 
         // ---- WINDOWS: a desktop with two windows following the live ring values. the windows animate only when motion is on ----
         Page {
-            k: 5
+            k: 6
             caption: `windows · hyprland · gaps ${gIn.v} / ${gOut.v} · border ${bord.v} · rounding ${rnd.v} · panels ${pan.v} %`
 
             Row {
@@ -947,7 +1042,7 @@ PanelWindow {
         // logical px, scale and hz, the bar and home on it. night light — all of them ----
         Page {
             id: disp
-            k: 6
+            k: 7
             readonly property var m: Rules.mons.find(x => x.name === root.mon) ?? Rules.mon
             readonly property var w: Rules.want(m)
             caption: `display · ${m.name.toLowerCase()} · ${m.w} × ${m.h} · ${m.hz} hz`
@@ -1083,7 +1178,7 @@ PanelWindow {
         // ---- AUDIO: output and input — volume, mute, level, the default device (prefs/Audio) ----
         Page {
             id: audioPage
-            k: 7
+            k: 8
             caption: aud.caption
             Audio { id: aud; live: audioPage.visible && root.shown }
         }
@@ -1091,7 +1186,7 @@ PanelWindow {
         // ---- POWER: the power modes (Rules.modes) — four circles, the ring lit by strength, the picked one white.
         // ultra — power saver plus 60 hz, no animations, blur or shadows over these settings ----
         Page {
-            k: 8
+            k: 9
             caption: `power · ${Rules.modes[Rules.mode].what} · ${Rules.hz} hz`
 
             Row {
@@ -1134,7 +1229,7 @@ PanelWindow {
         // ---- INPUT: hold a key — the first dot right away, a delay pause, then rate a second; played out on live rings ----
         Page {
             id: inp
-            k: 9
+            k: 10
             caption: "input · keyboard · touchpad"
             property int n: 0 // how much is "typed"; 0 — the key is up
             Timer {
@@ -1193,7 +1288,7 @@ PanelWindow {
         // ---- IDLE: a scale of minutes without input. the dots dim at every event: awake → locked → screen off → asleep.
         // the marks drag along, past 60 — never ----
         Page {
-            k: 10
+            k: 11
             caption: "idle · minutes without input · hypridle"
 
             Item {
@@ -1248,7 +1343,7 @@ PanelWindow {
 
         // ---- SHELL: the rice's mark and the running shell's name; switching is the Rice app's job ----
         Page {
-            k: 11
+            k: 12
             caption: "shell · quickshell"
 
             Row {

@@ -5,6 +5,7 @@ import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 import Quickshell.Services.UPower
 import Quickshell.Wayland
+import "flash.js" as FlashShape
 import qs
 import qs.components
 
@@ -114,16 +115,20 @@ Scope {
             width: 600
             height: 4
             n: 12
-            f: 1
             on: root.crit ? Skin.red : Skin.fg
             layer.enabled: true
             layer.effect: Glow {}
-            SequentialAnimation on opacity {
+            // the glyph composer: one three-second cycle, the shape math in flash.js, the pattern picked in
+            // prefs → edge lights. criticals flash red either way
+            property real ph: 0
+            SequentialAnimation on ph {
                 running: top.shown
                 loops: Animation.Infinite
-                NumberAnimation { from: 0.15; to: 1; duration: 720; easing.type: Easing.InOutSine }
-                NumberAnimation { from: 1; to: 0.15; duration: 1680; easing.type: Easing.InOutSine }
+                NumberAnimation { from: 0; to: 1; duration: 3000 }
             }
+            readonly property var sh: FlashShape.shape(Skin.state.flash || "breathe", ph)
+            f: sh.f
+            opacity: sh.o
         }
     }
 
