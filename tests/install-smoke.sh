@@ -7,6 +7,11 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/home/.config" "$TMP/custom-config" "$TMP/bin"
 ln -s "$TMP/custom-config" "$TMP/home/.config/hypr"
+# gtk-3.0 and gtk-4.0 both ship a gtk.css — the backup must keep the layout, not flatten
+# both into one name (that collision killed the links step mid-run)
+mkdir -p "$TMP/home/.config/gtk-3.0" "$TMP/home/.config/gtk-4.0"
+printf '/* old gtk3 */\n' > "$TMP/home/.config/gtk-3.0/gtk.css"
+printf '/* old gtk4 */\n' > "$TMP/home/.config/gtk-4.0/gtk.css"
 
 for command_name in sudo pacman systemctl yay fc-cache; do
   cat > "$TMP/bin/$command_name" <<'STUB'
@@ -16,8 +21,13 @@ STUB
   chmod +x "$TMP/bin/$command_name"
 done
 
-HOME="$TMP/home" PATH="$TMP/bin:$PATH" SHELL=/bin/bash \
-  bash "$ROOT/scripts/install.sh"
+# under a pty (when script is around) the installer colors its dots — the log must still come out plain
+if command -v script >/dev/null 2>&1; then
+  script -qec "env HOME='$TMP/home' PATH='$TMP/bin:$PATH' SHELL=/bin/bash bash '$ROOT/scripts/install.sh'" /dev/null
+else
+  HOME="$TMP/home" PATH="$TMP/bin:$PATH" SHELL=/bin/bash \
+    bash "$ROOT/scripts/install.sh"
+fi
 
 [[ -L "$TMP/home/.config/hypr" ]]
 [[ "$(readlink "$TMP/home/.config/hypr")" == "$ROOT/hypr" ]]
@@ -25,6 +35,13 @@ backup_dir="$(find "$TMP/home/.config" -maxdepth 1 -type d -name 'backup-*' -pri
 [[ -n "$backup_dir" ]]
 [[ -L "$backup_dir/hypr" ]]
 [[ "$(readlink "$backup_dir/hypr")" == "$TMP/custom-config" ]]
+
+[[ -L "$TMP/home/.config/gtk-3.0/gtk.css" ]]
+[[ "$(readlink "$TMP/home/.config/gtk-3.0/gtk.css")" == "$ROOT/pulse/term/gtk-3.0/gtk.css" ]]
+[[ -L "$TMP/home/.config/gtk-4.0/gtk.css" ]]
+[[ "$(readlink "$TMP/home/.config/gtk-4.0/gtk.css")" == "$ROOT/pulse/term/gtk-4.0/gtk.css" ]]
+[[ -f "$backup_dir/gtk-3.0/gtk.css" ]]
+[[ -f "$backup_dir/gtk-4.0/gtk.css" ]]
 
 [[ -L "$TMP/home/.config/quickshell/pulse" ]]
 [[ "$(readlink "$TMP/home/.config/quickshell/pulse")" == "$ROOT/pulse" ]]
@@ -43,6 +60,10 @@ grep -qx pulse "$TMP/home/.local/state/rice/shell"
 install_log="$(find "$TMP/home/.local/state/pulse" -name 'install-*.log' -print -quit)"
 [[ -n "$install_log" ]]
 grep -q 'done. reboot' "$install_log"
+[[ -z "$(LC_ALL=C grep -a $'\033' "$install_log")" ]] || {
+  printf 'smoke test: the install log kept ANSI color codes\n' >&2
+  exit 1
+}
 
 # failure path: a dying step must stop the install and leave a report in the log
 TMP2="$(mktemp -d)"

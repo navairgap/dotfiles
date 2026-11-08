@@ -26,7 +26,9 @@ C_TTY=0; [ -t 1 ] && C_TTY=1
 bold()  { if [ "$C_TTY" = 1 ]; then printf "\033[1m%s\033[0m\n" "$*"; else printf '%s\n' "$*"; fi; }
 dot()   { if [ "$C_TTY" = 1 ]; then printf "  \033[31m●\033[0m %s\n" "$*"; else printf '  ● %s\n' "$*"; fi; }
 
-exec > >(tee "$LOG") 2>&1  # live on the terminal, kept in the log
+# tee keeps the terminal live; sed peels the color codes off the copy that lands in the log
+# (-u flushes per line, so a dead install still leaves a readable tail)
+exec > >(tee >(sed -u $'s/\033\\[[0-9;]*m//g' > "$LOG")) 2>&1
 
 on_err() {  # what the user sees when a step dies: the command, the line, the tail, the file
   local code="$1" line="$2" cmd="$3"
@@ -51,6 +53,9 @@ need_pacman() {
 
 # ---------- what gets installed ----------
 PKGS=(
+  # the yay bootstrap runs makepkg, which needs fakeroot (and debugedit when makepkg.conf
+  # builds debug packages); git fetches yay-bin — without base-devel the build died and the aur was skipped
+  base-devel git
   # session
   hyprland hypridle hyprsunset hyprpicker xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
   sddm quickshell polkit-gnome gnome-keyring geoclue upower xdg-user-dirs
@@ -97,7 +102,9 @@ link() {  # link <repo-relative> <absolute-target>
   local source="$REPO_DIR/$1"
   local target="$2"
   local backup_target
-  backup_target="$BACKUP/$(basename "$target")"
+  # keep the .config layout in the backup — gtk-3.0/gtk.css and gtk-4.0/gtk.css share a
+  # basename, and both flattening into backup/gtk.css died on the second one
+  backup_target="$BACKUP/${target#"$CONFIG"/}"
   mkdir -p "$(dirname "$target")"
 
   if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
@@ -108,8 +115,9 @@ link() {  # link <repo-relative> <absolute-target>
   if [ -e "$target" ] || [ -L "$target" ]; then
     if [ -e "$backup_target" ] || [ -L "$backup_target" ]; then
       printf 'error: backup path already exists: %s\n' "$backup_target" >&2
-      exit 1
+      return 1  # not exit — the ERR trap turns this into the report with the log path
     fi
+    mkdir -p "$(dirname "$backup_target")"
     mv "$target" "$backup_target"
     echo "    backed up $target → $backup_target"
   fi
@@ -159,9 +167,10 @@ packages() {
     fi
     rm -rf "$tmp"
   fi
-  yay -S --needed --noconfirm "${AUR[@]}" 2>/dev/null || dot "some aur packages failed, see above — everything else continues"
+  # stderr kept: the message says "see above", so the reason has to actually be above
+  yay -S --needed --noconfirm "${AUR[@]}" || dot "some aur packages failed, see above — everything else continues"
   if [ "${#EXT[@]}" -gt 0 ]; then
-    yay -S --needed --noconfirm "${EXT[@]}" 2>/dev/null || dot "some extras failed, see above"
+    yay -S --needed --noconfirm "${EXT[@]}" || dot "some extras failed, see above"
   fi
 }
 
