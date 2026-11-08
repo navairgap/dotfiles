@@ -33,6 +33,7 @@ hl.bind("SUPER + P", hl.dsp.global("shell:pact"))
 hl.bind("SUPER + A", hl.dsp.global("shell:quick")) -- pulse quick settings
 hl.bind("SUPER + SHIFT + W", hl.dsp.global("shell:wall")) -- pulse wallpaper
 hl.bind(vars.kbOverview, hl.dsp.global("shell:overview")) -- every workspace, one scrim
+hl.bind(vars.kbKeys, hl.dsp.global("shell:keys")) -- the cheat sheet
 hl.bind(vars.kbSession, hl.dsp.global("shell:power"))
 hl.bind(vars.kbPower, hl.dsp.global("shell:power"))
 hl.bind(vars.kbLock, hl.dsp.exec_cmd(vars.lockCmd))

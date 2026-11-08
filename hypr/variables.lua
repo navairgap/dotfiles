@@ -97,6 +97,7 @@ return {
     kbSwitcherSuperPrev        = "SUPER + SHIFT + Tab",
     kbSwitcherCancel           = "ALT + Escape",
     kbOverview                 = "SUPER + CTRL + Up",
+    kbKeys                     = "CTRL + ALT + K",
     kbUngroup                  = "SUPER + U",
     kbToggleGroup              = "SUPER + Comma",
 

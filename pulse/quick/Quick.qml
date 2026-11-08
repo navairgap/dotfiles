@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Networking
 import Quickshell.Services.Notifications
+import Quickshell.Services.Pipewire
 import Quickshell.Wayland
 import qs
 import qs.components
@@ -205,6 +206,76 @@ PanelWindow {
                     Slider { icon: "\u{F00E0}"; visible: Sys.hasBri; value: Sys.bri; onMoved: v => Sys.setBri(v) }
                     Slider { icon: Sys.muted ? "\u{F075F}" : "\u{F057E}"; value: Sys.muted ? 0 : Sys.vol; onMoved: v => Sys.setVol(v) }
 
+                    // per-app mixer: the header only shows while something is wired to the sound system
+                    Row {
+                        visible: Sys.streams.some(s => s.linkGroups.length > 0)
+                        width: parent.width
+                        height: 26
+
+                        Lb { x: 6; anchors.verticalCenter: parent.verticalCenter; text: "apps"; px: 11 }
+                        Icon {
+                            anchors { right: parent.right; rightMargin: 6; verticalCenter: parent.verticalCenter }
+                            text: mixer.open ? "\u{F0140}" : "\u{F0141}"
+                            font.pixelSize: 18
+                            color: Skin.grey
+                            TapHandler { onTapped: { root.pin(); mixer.open = !mixer.open; } }
+                            HoverHandler { cursorShape: Qt.PointingHandCursor }
+                        }
+                    }
+                    Rectangle {
+                        id: mixer
+                        property bool open: false
+                        visible: height > 0
+                        width: parent.width
+                        height: open ? mixBody.height + 22 : 0
+                        Behavior on height { enabled: Rules.moving; NumberAnimation { duration: Skin.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Skin.glide } }
+                        clip: true
+                        radius: Skin.corner(22)
+                        color: Skin.s2
+
+                        Column {
+                            id: mixBody
+                            x: 12
+                            y: 11
+                            width: parent.width - 24
+                            spacing: 6
+
+                            Repeater {
+                                model: Sys.streams
+
+                                Row {
+                                    id: mixrow
+                                    required property var modelData
+                                    readonly property bool live: tracker.linkGroups.length > 0
+                                    visible: live
+                                    height: live ? 40 : 0
+                                    PwNodeLinkTracker { id: tracker; node: mixrow.modelData }
+
+                                    Text {
+                                        textFormat: Text.PlainText
+                                        width: mixBody.width * 0.32
+                                        elide: Text.ElideRight
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        text: mixrow.modelData.nickname || mixrow.modelData.name || "app"
+                                        font { family: Skin.ui; pixelSize: 14 }
+                                        color: Skin.fg
+                                    }
+                                    Slider {
+                                        width: mixBody.width * 0.68 - 12
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        icon: "\u{F030E}"
+                                        value: mixrow.modelData.audio.muted ? 0 : mixrow.modelData.audio.volume
+                                        onMoved: v => {
+                                            mixrow.modelData.audio.muted = false;
+                                            mixrow.modelData.audio.volume = Math.max(0, Math.min(1, v));
+                                        }
+                                    }
+                                }
+                            }
+                            Lb { visible: !Sys.streams.some(s => s.linkGroups.length > 0); x: 6; text: "nothing playing"; px: 11 }
+                        }
+                    }
+
                     // power modes: four cells, the white fill slides over to the chosen one; the notches are the strength.
                     // ultra also runs 60hz and drops animations, blur and shadows (rules.modes)
                     // game mode on the right (rules.store.game): no animations, blur, shadows or gaps, and tearing
@@ -364,6 +435,37 @@ PanelWindow {
                                     text: n.body
                                     font { family: Skin.ui; pixelSize: 14 }
                                     color: Skin.grey
+                                }
+                                // the app's own buttons (everything but the default — the card tap is that one).
+                                // a MouseArea, not a TapHandler: the tap must not fall through to the card
+                                Row {
+                                    visible: n.actions.filter(a => a.identifier !== "default").length > 0
+                                    topPadding: 6
+                                    spacing: 8
+
+                                    Repeater {
+                                        model: n.actions.filter(a => a.identifier !== "default").slice(0, 3)
+
+                                        Rectangle {
+                                            id: act
+                                            required property var modelData
+                                            width: actLbl.width + 26
+                                            height: 30
+                                            radius: 15
+                                            color: actHov.hovered ? Skin.fg : Skin.s3
+                                            Behavior on color { ColorAnimation { duration: Skin.t } }
+                                            Lb { id: actLbl; anchors.centerIn: parent; text: act.modelData.text || act.modelData.identifier; color: actHov.hovered ? Skin.ink : Skin.grey; px: 10 }
+                                            HoverHandler { id: actHov; cursorShape: Qt.PointingHandCursor }
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                onClicked: {
+                                                    root.pin();
+                                                    act.modelData.invoke();
+                                                    if (n.tracked) n.dismiss();
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             // tap — the default action (if any) and the card goes away. invoke() closes the notification itself, taking

@@ -32,6 +32,9 @@ Singleton {
         sink.audio.muted = false;
         sink.audio.volume = Math.max(0, Math.min(1, v));
     }
+    // apps with a node in the sound system: the mixer in quick settings lists these, a slider each.
+    // whether one is actually playing shows per row via its links (a silent stream keeps its node)
+    readonly property var streams: Pipewire.nodes.values.filter(n => n.isStream && !n.isSink && n.audio)
     // someone is listening to the mic — the bar mark's center goes red
     PwNodeLinkTracker { id: micUse; node: root.mic }
     readonly property bool live: rec || micUse.linkGroups.length > 0

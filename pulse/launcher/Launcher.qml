@@ -17,7 +17,7 @@ PanelWindow {
 
     property int mode: 0
     property int sel: 0
-    readonly property var modes: ["apps", "style", "windows", "calc"]
+    readonly property var modes: ["apps", "style", "windows", "calc", "files"]
     readonly property string query: input.text
     property var uses: ({}) // app id → how many times i opened it
 
@@ -40,6 +40,28 @@ PanelWindow {
         target: DesktopEntries.applications
         function onValuesChanged() { appsT.restart(); }
     }
+    // $PATH executables, collected once at startup: type a command and it runs. the web answer sits under them
+    property var bins: []
+    Process {
+        id: binsScan
+        command: ["sh", "-c", "echo $PATH | tr ':' '\n' | while read -r d; do [ -d \"$d\" ] && ls \"$d\" 2>/dev/null; done | sort -u"]
+        stdout: StdioCollector { onStreamFinished: root.bins = text.trim().split("\n").filter(l => l) }
+    }
+    Timer { interval: 1200; running: true; onTriggered: binsScan.running = true }
+
+    // file search: fd over the real folders, find as the fallback. capped, debounced by exec killing the last run
+    property var fileOut: []
+    Process {
+        id: ffind
+        stdout: StdioCollector {
+            onStreamFinished: root.fileOut = text.trim().split("\n").filter(l => l).slice(0, 40).map(l => ({
+                name: l.split("/").pop(), src: root.icon("folder"),
+                extra: l.toLowerCase(),
+                run: () => Quickshell.execDetached(["xdg-open", l])
+            }))
+        }
+    }
+
     // windows only while the windows mode is open: otherwise every title change would rebuild the list
     readonly property var wins: !visible || mode !== 2 ? [] : Hyprland.toplevels.values.map(t => {
         const cls = t.lastIpcObject?.class ?? "";
@@ -85,10 +107,19 @@ PanelWindow {
         let b;
         if (mode === 1) b = Skin.styles.map(x => ({ head: x.head, items: filter(x.items.map(it => Object.assign({ extra: "", keep: true }, it)), q) })).filter(x => x.items.length);
         else if (mode === 3) b = [];
+        else if (mode === 4) b = q ? [{ head: "files", sub: String(fileOut.length), items: fileOut }] : [];
         else if (mode === 2) b = [{ head: "windows", sub: String(wins.length), items: filter(wins, q) }];
         else if (q) {
             const r = filter(apps, q);
-            b = [{ head: "results", sub: String(r.length), items: r }];
+            const runs = q.length > 1 ? bins.filter(x => x.toLowerCase().includes(q)).slice(0, 6).map(x => ({
+                id: "bin:" + x, name: x, src: root.icon("terminal"), extra: "command",
+                run: () => Quickshell.execDetached([x])
+            })) : [];
+            b = [{ head: "results", sub: String(r.length), items: r }]
+                .concat(runs.length ? [{ head: "run", items: runs }] : [])
+                .concat(q.length > 1 ? [{ head: "web", items: [{ id: "web:" + q, name: `"${query.trim()}" on the web`,
+                    src: "", extra: "duckduckgo",
+                    run: () => Quickshell.execDetached(["xdg-open", "https://duckduckgo.com/?q=" + encodeURIComponent(query.trim())]) }] }] : []);
         } else {
             const recent = apps.filter(a => uses[a.id]).sort((a, b) => uses[b.id] - uses[a.id]).slice(0, 6);
             b = (recent.length ? [{ head: "recent", items: recent }] : []).concat([{ head: "all apps", sub: String(apps.length), all: true, items: apps }]);
@@ -154,6 +185,12 @@ PanelWindow {
         sel = 0;
         if (mode === 3 && query.trim()) calc.exec(["qalc", "-t", query]); // exec kills the previous run
         else calcOut = "";
+        if (mode === 4 && query.trim().length > 1) {
+            const q = query.trim().replace(/['"\\]/g, "");
+            const dirs = "$HOME/Documents $HOME/Downloads $HOME/Pictures $HOME/Videos $HOME/Music";
+            ffind.exec(["sh", "-c", `fd -H --max-results 40 '${q}' ${dirs} 2>/dev/null `
+                + `|| find ${dirs} -maxdepth 3 -iname '*${q}*' 2>/dev/null | head -40`]);
+        } else if (mode === 4) fileOut = [];
     }
     onModeChanged: { sel = 0; flick.contentY = 0; if (mode === 3) queryChanged(); }
     // the list shrank without a new query (a window closed in windows mode) — the cursor would sit past the end, cur empty
@@ -217,15 +254,15 @@ PanelWindow {
                     Text {
                         visible: !input.text
                         x: 6
-                        text: ["Search apps", "Color from nothing, the wallpaper or a palette", "Find a window", "2 + 2, 20 usd to eur…"][root.mode]
+                        text: ["Search apps", "Color from nothing, the wallpaper or a palette", "Find a window", "2 + 2, 20 usd to eur…", "find a file…"][root.mode]
                         font: input.font
                         color: Skin.mute
                     }
                     Keys.onPressed: e => {
                         if (e.key === Qt.Key_Escape) root.close();
                         else if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter) root.launch();
-                        else if (e.key === Qt.Key_Tab) root.mode = (root.mode + 1) % 4;
-                        else if (e.key === Qt.Key_Backtab) root.mode = (root.mode + 3) % 4;
+                        else if (e.key === Qt.Key_Tab) root.mode = (root.mode + 1) % 5;
+                        else if (e.key === Qt.Key_Backtab) root.mode = (root.mode + 4) % 5;
                         else if (e.key === Qt.Key_Down) root.move(1, 0);
                         else if (e.key === Qt.Key_Up) root.move(-1, 0);
                         else if (e.key === Qt.Key_Right && (!input.text || input.cursorPosition === input.text.length) && root.flat.length) root.move(0, 1);

@@ -136,7 +136,7 @@ Scope {
         anchors.top: true
         margins.top: root.underBar ? Math.ceil(78 * Skin.s) : 0
         implicitWidth: Math.ceil(600 * Skin.s)
-        implicitHeight: Math.ceil((24 + root.most * 132) * Skin.s)
+        implicitHeight: Math.ceil((24 + root.most * 176) * Skin.s)
         exclusionMode: ExclusionMode.Ignore
         color: "transparent"
         mask: Region { item: col }
@@ -177,7 +177,8 @@ Scope {
 
                         width: 600
                         height: (40 + (full - 40) * grow + 12) * drop // the stack slot grows and collapses along with the card
-                        Timer { running: !c.leaving && !hov.hovered; interval: 4000; onTriggered: root.dismiss(c.key) }
+                        // criticals stay until someone deals with them — they expire like the rest
+                        Timer { running: !c.leaving && !hov.hovered && !c.crit; interval: 4000; onTriggered: root.dismiss(c.key) }
 
                         Rectangle {
                             width: 140 + (600 - 140) * c.grow
@@ -241,6 +242,35 @@ Scope {
                                         text: c.body
                                         font { family: Skin.ui; pixelSize: 14 }
                                         color: Skin.grey
+                                    }
+                                    // the app's own buttons (everything but the default — the card tap is that one)
+                                    Row {
+                                        visible: (root.refs[c.key]?.actions?.filter(a => a.identifier !== "default").length ?? 0) > 0
+                                        topPadding: 6
+                                        spacing: 8
+
+                                        Repeater {
+                                            model: (root.refs[c.key]?.actions ?? []).filter(a => a.identifier !== "default").slice(0, 3)
+
+                                            Rectangle {
+                                                id: act
+                                                required property var modelData
+                                                width: actLbl.width + 24
+                                                height: 28
+                                                radius: 14
+                                                color: actHov.hovered ? Skin.fg : Skin.s3
+                                                Behavior on color { ColorAnimation { duration: Skin.t } }
+                                                Lb { id: actLbl; anchors.centerIn: parent; text: act.modelData.text || act.modelData.identifier; color: actHov.hovered ? Skin.ink : Skin.grey; px: 10 }
+                                                HoverHandler { id: actHov; cursorShape: Qt.PointingHandCursor }
+                                                MouseArea {
+                                                    anchors.fill: parent
+                                                    onClicked: {
+                                                        act.modelData.invoke();
+                                                        root.dismiss(c.key);
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 // the red dot — newest card only: one red thing on screen

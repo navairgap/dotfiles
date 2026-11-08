@@ -126,4 +126,4 @@ hl.layer_rule({ match = { namespace = "launcher" }, animation = "popin 80%", blu
 -- pulse modules (osd bars, island, quick settings, the rest) draw their own entrances — keep the compositor out
 -- (and off the osd's back); the power menu has no animation of its own, so just a soft fade
 hl.layer_rule({ match = { namespace = "pulse-power" }, animation = "fade" })
-hl.layer_rule({ match = { namespace = "pulse-(launcher|edge|island|buds|quick|home|bar|caffeine|shot|clip|charms|vpn|deck|prefs|hot|cal|wall|back|switch|overview|snap)" }, no_anim = true })
+hl.layer_rule({ match = { namespace = "pulse-(launcher|edge|island|buds|quick|home|bar|caffeine|shot|clip|charms|vpn|deck|prefs|hot|cal|wall|back|switch|overview|snap|keys)" }, no_anim = true })

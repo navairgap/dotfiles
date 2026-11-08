@@ -12,6 +12,7 @@ import "clip"
 import "deck"
 import "edge"
 import "home"
+import "keys"
 import "launcher"
 import "overview"
 import "power"
@@ -45,6 +46,7 @@ ShellRoot {
     Switcher { id: switcher }
     Overview { id: overview }
     Zones { id: zones }
+    Keys { id: keys }
     Vpn { id: vpn }
     Walls { id: walls }
 
@@ -193,6 +195,7 @@ ShellRoot {
     Shortcut { name: "zoneTr"; description: "snap top right quarter"; onPressed: zones.flash("tr") }
     Shortcut { name: "zoneBl"; description: "snap bottom left quarter"; onPressed: zones.flash("bl") }
     Shortcut { name: "zoneBr"; description: "snap bottom right quarter"; onPressed: zones.flash("br") }
+    Shortcut { name: "keys"; description: "the keybind cheat sheet"; onPressed: keys.toggle() }
 
     component Shortcut: GlobalShortcut { appid: "shell" }
 }
