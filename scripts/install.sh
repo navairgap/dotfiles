@@ -167,8 +167,12 @@ packages() {
     fi
     rm -rf "$tmp"
   fi
-  # stderr kept: the message says "see above", so the reason has to actually be above
-  yay -S --needed --noconfirm "${AUR[@]}" || dot "some aur packages failed, see above — everything else continues"
+  # stderr kept: the message says "see above", so the reason has to actually be above.
+  # a half-written build in yay's cache ("missing package metadata") fails the whole
+  # transaction — one rebuild-from-source retry regenerates the tarball, then give up
+  yay -S --needed --noconfirm "${AUR[@]}" || \
+    yay -S --needed --noconfirm --rebuild "${AUR[@]}" || \
+    dot "some aur packages failed, see above — everything else continues"
   if [ "${#EXT[@]}" -gt 0 ]; then
     yay -S --needed --noconfirm "${EXT[@]}" || dot "some extras failed, see above"
   fi
@@ -275,10 +279,12 @@ case "${1:-}" in
   ""|--with)
     need_pacman
     [ "${1:-}" = "--with" ] && WITH="${*:2}"  # commas or spaces both work
+    # links before services: the pulse units are enabled by name, so they must be on
+    # disk already — the old order died with "unit pulse-shell.service does not exist"
     extras
     packages
-    services
     links
+    services
     greeter
     if [[ " ${WITH//,/ } " == *" spotify "* ]]; then
       dot "spotify: launch it once, log in, then: spicetify config custom_apps marketplace && spicetify backup apply"

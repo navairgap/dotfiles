@@ -13,13 +13,25 @@ mkdir -p "$TMP/home/.config/gtk-3.0" "$TMP/home/.config/gtk-4.0"
 printf '/* old gtk3 */\n' > "$TMP/home/.config/gtk-3.0/gtk.css"
 printf '/* old gtk4 */\n' > "$TMP/home/.config/gtk-4.0/gtk.css"
 
-for command_name in sudo pacman systemctl yay fc-cache; do
+for command_name in sudo pacman yay fc-cache; do
   cat > "$TMP/bin/$command_name" <<'STUB'
 #!/usr/bin/env bash
 exit 0
 STUB
   chmod +x "$TMP/bin/$command_name"
 done
+# services() enables the pulse units by name — they must already be linked (links runs first;
+# the old order enabled them before links and died with "unit pulse-shell.service does not exist")
+cat > "$TMP/bin/systemctl" <<'STUB'
+#!/usr/bin/env bash
+for arg in "$@"; do
+  case "$arg" in pulse-*.service)
+    [ -e "$HOME/.config/systemd/user/$arg" ] || { printf 'systemctl: unit %s is not linked yet\n' "$arg" >&2; exit 1; } ;;
+  esac
+done
+exit 0
+STUB
+chmod +x "$TMP/bin/systemctl"
 
 # under a pty (when script is around) the installer colors its dots — the log must still come out plain
 if command -v script >/dev/null 2>&1; then
