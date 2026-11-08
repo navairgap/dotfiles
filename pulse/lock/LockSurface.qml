@@ -110,6 +110,56 @@ WlSessionLockSurface {
             Lb { anchors.verticalCenter: parent.verticalCenter; text: `${Skin.state.unread} notifications` }
         }
 
+        // power: a dot at the bottom right — sleep, reboot, off, the power menu's own actions without the session
+        // around them. tap the dot, three circles rise; tap it again and they go
+        property bool pw: false
+        Row {
+            anchors { right: parent.right; rightMargin: 44 }
+            y: parent.height - 44 - 68 + (root.pw ? 0 : 68)
+            spacing: 18
+            opacity: root.pw ? 1 : 0
+            Behavior on y { NumberAnimation { duration: Skin.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Skin.glide } }
+            Behavior on opacity { NumberAnimation { duration: Skin.t } }
+
+            Repeater {
+                model: [
+                    { ic: "\u{F0594}", word: "sleep", cmd: "suspend" },
+                    { ic: "\u{F0450}", word: "reboot", cmd: "reboot" },
+                    { ic: "\u{F0425}", word: "off", cmd: "poweroff" }
+                ]
+
+                Column {
+                    id: pwr
+                    required property var modelData
+                    spacing: 8
+                    Rectangle {
+                        width: 56
+                        height: 56
+                        radius: 28
+                        color: pwrHov.hovered ? Skin.fg : Skin.s1
+                        border { width: 1; color: Skin.s3 }
+                        Behavior on color { ColorAnimation { duration: Skin.t } }
+                        Icon { anchors.centerIn: parent; text: pwr.modelData.ic; font.pixelSize: 24; color: pwrHov.hovered ? Skin.ink : Skin.fg }
+                        HoverHandler { id: pwrHov; cursorShape: Qt.PointingHandCursor }
+                        TapHandler { onTapped: Quickshell.execDetached(["systemctl", pwr.modelData.cmd]) }
+                    }
+                    Lb { anchors.horizontalCenter: parent.horizontalCenter; text: pwr.modelData.word; px: 9 }
+                }
+            }
+        }
+        Rectangle {
+            anchors { right: parent.right; rightMargin: 44; bottom: parent.bottom; bottomMargin: 44 }
+            width: 34
+            height: 34
+            radius: 17
+            color: root.pw ? Skin.fg : "transparent"
+            border { width: 1; color: Skin.s3 }
+            Behavior on color { ColorAnimation { duration: Skin.t } }
+            Icon { anchors.centerIn: parent; text: "\u{F0425}"; font.pixelSize: 16; color: root.pw ? Skin.ink : Skin.grey }
+            HoverHandler { cursorShape: Qt.PointingHandCursor }
+            TapHandler { onTapped: root.pw = !root.pw }
+        }
+
         Column {
             anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 120 }
             spacing: 16

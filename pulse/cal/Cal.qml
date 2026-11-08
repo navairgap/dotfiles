@@ -193,8 +193,59 @@ PanelWindow {
                         }
                     }
                 }
+
+                Rectangle { width: parent.width; height: 1; color: Skin.s2 }
+
+                Row {
+                    spacing: 24
+                    Num {
+                        anchors.verticalCenter: parent.verticalCenter
+                        x: 40
+                        text: root.swFormat(root.swMs)
+                        font.pixelSize: 44
+                        color: root.swRun ? Skin.fg : Skin.grey
+                    }
+                    Row {
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 10
+                        Rectangle {
+                            width: 146
+                            height: 44
+                            radius: Skin.corner(22)
+                            color: root.swRun ? Skin.s2 : Skin.fg
+                            Row {
+                                anchors.centerIn: parent
+                                spacing: 8
+                                Icon { anchors.verticalCenter: parent.verticalCenter; text: root.swRun ? "\u{F03E4}" : "\u{F040A}"; color: root.swRun ? Skin.fg : Skin.ink }
+                                Lb { anchors.verticalCenter: parent.verticalCenter; text: root.swRun ? "stop" : "start"; color: root.swRun ? Skin.fg : Skin.ink }
+                            }
+                            HoverHandler { cursorShape: Qt.PointingHandCursor }
+                            TapHandler { onTapped: root.swToggle() }
+                        }
+                        Round { icon: "\u{F0450}"; opacity: root.swMs > 0 ? 1 : 0.4; onClicked: root.swReset() }
+                    }
+                    Lb { anchors.verticalCenter: parent.verticalCenter; text: "stopwatch"; px: 10; opacity: 0.6 }
+                }
             }
         }
+    }
+
+    // stopwatch: self-contained, the focus timer owns its ring — this just counts up, centiseconds and all
+    property bool swRun: false
+    property real swAt: 0          // elapsed ms banked while paused
+    property date swFrom: new Date()
+    property int swTick: 0         // the display re-reads the clock on this; Date.now() alone isn't reactive
+    Timer { running: swRun; interval: 173; repeat: true; onTriggered: swTick++ }
+    readonly property real swMs: swAt + (swRun ? Date.now() - swFrom.getTime() : 0) + swTick * 0
+    function swToggle() {
+        const now = new Date();
+        if (swRun) { swAt += now.getTime() - swFrom.getTime(); swRun = false; }
+        else { swFrom = now; swRun = true; }
+    }
+    function swReset() { swRun = false; swAt = 0; }
+    function swFormat(ms) {
+        const cs = Math.floor(ms / 10) % 100, s = Math.floor(ms / 1000) % 60, m = Math.floor(ms / 60000);
+        return `${m}:${String(s).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
     }
 
     component Round: Rectangle {

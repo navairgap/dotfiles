@@ -13,6 +13,7 @@ import "deck"
 import "edge"
 import "home"
 import "keys"
+import "jot"
 import "launcher"
 import "overview"
 import "power"
@@ -47,6 +48,7 @@ ShellRoot {
     Overview { id: overview }
     Zones { id: zones }
     Keys { id: keys }
+    Jot { id: jot }
     Vpn { id: vpn }
     Walls { id: walls }
 
@@ -67,6 +69,7 @@ ShellRoot {
                     { label: "quick settings", run: () => quick.toggle() },
                     { label: "launcher", run: () => launcher.open() },
                     { label: "display", run: () => prefs.open() },
+                    { label: "notes", run: () => jot.toggle() },
                     "-",
                     { label: "overview", run: () => overview.toggle() },
                     { label: "lock", run: () => Quickshell.execDetached(["sh", "-c", "~/.config/quickshell/rice/rice lock"]) },

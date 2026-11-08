@@ -41,13 +41,18 @@ step fails, the script prints what died, the log tail and the full path — past
 | super + p | vpn panel (clash verge) |
 | super + esc | power menu |
 | super + l | lock screen |
+| alt+tab / super+tab | window switcher — hold, tap, release |
+| super + ctrl + up | overview: every workspace on one scrim |
+| super + alt + arrows / 1..4 | snap: halves / quarters |
+| ctrl + alt + k | keybind cheat sheet |
 | super + q / w | terminal / browser (apps in hypr/variables.lua) |
 | super + h/j/k/l or arrows | focus |
 | super + 1..5 | workspaces |
 | click the clock | calendar + focus timer |
 
-the full list lives in hypr/hyprland/keybinds.lua; every panel also opens from
-screen edges, the tray and the bar.
+the full list lives in hypr/hyprland/keybinds.lua — ctrl+alt+k shows the
+cheat sheet on screen. every panel also opens from screen edges, the tray
+and the bar; right-click the empty wallpaper for the desktop menu.
 
 ## what's here
 
