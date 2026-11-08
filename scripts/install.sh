@@ -6,11 +6,40 @@
 #   ./scripts/install.sh --links                links only (already-set-up machine, or another distro)
 #   ./scripts/install.sh --sddm                 login theme only (sudo); re-run after editing sddm/
 set -euo pipefail
+set -E  # the error trap fires inside functions too, not just at the top level
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="$HOME/.config"
 STATE="${XDG_STATE_HOME:-$HOME/.local/state}"
 BACKUP="$CONFIG/backup-$(date +%Y%m%d-%H%M%S)"
+
+# ---------- the log ----------
+# every step lands in a file under ~/.local/state/pulse; if a step dies, the
+# report at the bottom says what ran and where the full log is. last five kept.
+LOG_DIR="$STATE/pulse"
+mkdir -p "$LOG_DIR"
+LOG="$LOG_DIR/install-$(date +%Y%m%d-%H%M%S).log"
+ls -1t "$LOG_DIR"/install-*.log 2>/dev/null | tail -n +6 | xargs -r rm -f || true
+
+# colors only when stdout is a real terminal — checked before the redirect, so the log stays plain text
+C_TTY=0; [ -t 1 ] && C_TTY=1
+bold()  { if [ "$C_TTY" = 1 ]; then printf "\033[1m%s\033[0m\n" "$*"; else printf '%s\n' "$*"; fi; }
+dot()   { if [ "$C_TTY" = 1 ]; then printf "  \033[31m●\033[0m %s\n" "$*"; else printf '  ● %s\n' "$*"; fi; }
+
+exec > >(tee "$LOG") 2>&1  # live on the terminal, kept in the log
+
+on_err() {  # what the user sees when a step dies: the command, the line, the tail, the file
+  local code="$1" line="$2" cmd="$3"
+  sleep 0.2  # give tee a beat to flush the failing command's own output into the log
+  printf '\n'
+  bold "install failed — exit $code"
+  dot "the step that died: $cmd (line $line)"
+  dot "log tail:"
+  tail -n 15 "$LOG" | sed 's/^/    │ /'
+  dot "full log: $LOG"
+  exit "$code"
+}
+trap 'on_err $? $LINENO "$BASH_COMMAND"' ERR
 
 need_pacman() {
   command -v pacman >/dev/null 2>&1 || {
@@ -19,9 +48,6 @@ need_pacman() {
     exit 1
   }
 }
-
-bold()  { printf "\033[1m%s\033[0m\n" "$*"; }
-dot()   { printf "  \033[31m●\033[0m %s\n" "$*"; }
 
 # ---------- what gets installed ----------
 PKGS=(
@@ -216,6 +242,7 @@ fi
 
 bold "pulse — Nothing OS × Hyprland × Quickshell"
 dot "repo: $REPO_DIR"
+dot "log: $LOG"
 
 case "${1:-}" in
   --links)
@@ -235,6 +262,7 @@ case "${1:-}" in
     fi
     bold "done. reboot, pick Hyprland at the login screen."
     dot "super tap launcher · super+a quick settings · super+space deck · super+i prefs"
+    dot "log: $LOG"
     ;;
   *)
     printf 'usage: %s [--with telegram,spotify,clash | --links | --sddm]\n' "$0"

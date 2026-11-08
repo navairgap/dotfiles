@@ -23,6 +23,9 @@ reboot, pick hyprland, log in.
 on a machine that's already set up, or another distro: `./scripts/install.sh --links`
 (the package list is in scripts/install.sh; quickshell 0.3.1+ and hyprland 0.56+ are the load-bearing ones).
 
+every run keeps a log at `~/.local/state/pulse/install-<date>.log` (last five kept). if a
+step fails, the script prints what died, the log tail and the full path — paste that when asking for help.
+
 ## keys
 
 | key | what |
