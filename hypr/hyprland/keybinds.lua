@@ -18,7 +18,7 @@ for _, key in ipairs({
     "Z", "X", "U", "S", "H", "I", "space", "Escape",
     "Comma", "Period", "Minus", "Equal", "Backslash",
     "left", "right", "up", "down",
-    "Page_Up", "Page_Down", "F12",
+    "Page_Up", "Page_Down", "F12", "Tab",
     "mouse:272", "mouse:273", "mouse:274", "mouse:275", "mouse:276", "mouse:277",
     "mouse_up", "mouse_down",
 }) do
@@ -32,10 +32,28 @@ hl.bind("SUPER + N", hl.dsp.global("shell:ward"))
 hl.bind("SUPER + P", hl.dsp.global("shell:pact"))
 hl.bind("SUPER + A", hl.dsp.global("shell:quick")) -- pulse quick settings
 hl.bind("SUPER + SHIFT + W", hl.dsp.global("shell:wall")) -- pulse wallpaper
+hl.bind(vars.kbOverview, hl.dsp.global("shell:overview")) -- every workspace, one scrim
 hl.bind(vars.kbSession, hl.dsp.global("shell:power"))
 hl.bind(vars.kbPower, hl.dsp.global("shell:power"))
 hl.bind(vars.kbLock, hl.dsp.exec_cmd(vars.lockCmd))
 hl.bind(vars.kbRestoreLock, hl.dsp.exec_cmd(vars.lockCmd), { locked = true }) -- the lock died — raise it again (session is still locked, hence the locked flag)
+
+-- snap zones, windows-style: the window lands on the half or quarter, the shell flashes the zone. fn.snap_active
+-- floats it first — a snapped window stands still, dwindle would drag it right back
+local function zone(key, fx, fy, fw, fh, name)
+    hl.bind("SUPER + ALT + " .. key, function()
+        hl.dispatch(hl.dsp.global("shell:zone" .. name))
+        fn.snap_active(fx, fy, fw, fh)
+    end)
+end
+zone("left",  0,  0,  50, 100, "Left")
+zone("right", 50, 0,  50, 100, "Right")
+zone("up",    0,  0,  100, 100, "Max")
+zone("down",  20, 20, 60, 60, "Center")
+zone(1, 0,  0,  50, 50, "Tl")
+zone(2, 50, 0,  50, 50, "Tr")
+zone(3, 0,  50, 50, 50, "Bl")
+zone(4, 50, 50, 50, 50, "Br")
 
 -- brightness goes through the shell (services/Backlight): the osd moves instantly, brightnessctl catches up
 hl.bind("XF86MonBrightnessUp", hl.dsp.global("shell:briUp"), { locked = true, repeating = true })
@@ -89,8 +107,13 @@ hl.bind("CTRL + SUPER + SHIFT + down", hl.dsp.window.move({ workspace = "e+0" })
 hl.bind("SUPER + ALT + S", hl.dsp.window.move({ workspace = "special:special" }))
 
 -- window groups
-hl.bind(vars.kbWindowGroupCycleNext, hl.dsp.window.cycle_next(), { repeating = true })
-hl.bind(vars.kbWindowGroupCyclePrev, hl.dsp.window.cycle_next({ next = false }), { repeating = true })
+-- the switcher owns alt-tab and super+tab (the overlay, pulse/switch): hold the mod, tap, release to land. groups
+-- keep ctrl+alt+tab — cycling inside the focused group is gone, the switcher covers it better
+hl.bind(vars.kbSwitcherNext, hl.dsp.global("shell:switcherNext"))
+hl.bind(vars.kbSwitcherPrev, hl.dsp.global("shell:switcherPrev"))
+hl.bind(vars.kbSwitcherSuperNext, hl.dsp.global("shell:switcherNext"))
+hl.bind(vars.kbSwitcherSuperPrev, hl.dsp.global("shell:switcherPrev"))
+hl.bind(vars.kbSwitcherCancel, hl.dsp.global("shell:switcherCancel"))
 hl.bind("CTRL + ALT + Tab", hl.dsp.group.next(), { repeating = true })
 hl.bind("CTRL + SHIFT + ALT + Tab", hl.dsp.group.prev(), { repeating = true })
 hl.bind(vars.kbToggleGroup, hl.dsp.group.toggle())

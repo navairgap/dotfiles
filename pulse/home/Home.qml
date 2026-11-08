@@ -47,6 +47,10 @@ PanelWindow {
         function onCpuChanged() { root.hist = root.hist.concat([SysStats.cpu]).slice(-34); }
     }
 
+    // the desktop menu: shell.qml hands the actions in (they need the panels' ids). right-click when the
+    // workspace is empty — the menu lives on the bottom layer with the home, so it only shows over the wallpaper
+    property var menuItems: []
+
     function week(d) { // iso week number
         const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
@@ -58,6 +62,15 @@ PanelWindow {
         id: stage
         // laid out for a bar on the left; bar on top or taken off — slide half its width left to stay centered
         x: Skin.state.barAt === "top" || !Skin.scr(root.screen?.name, "bar") ? -39 * Skin.s : 0
+
+        // right-click the empty desktop: the menu under the widgets, so a click that isn't theirs lands here
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+            enabled: root.menuItems.length > 0
+            onClicked: menu.openAt(mouse.x, mouse.y, root.menuItems)
+        }
+        Menu { id: menu }
 
         Row {
             x: 182

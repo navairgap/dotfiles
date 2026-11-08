@@ -90,9 +90,13 @@ return {
     kbNextWs                   = "CTRL + SUPER + Right",
     kbPrevWs                   = "CTRL + SUPER + Left",
 
-    -- Window Group
-    kbWindowGroupCycleNext     = "ALT + TAB",
-    kbWindowGroupCyclePrev     = "SHIFT + ALT + TAB",
+    -- Window Switcher and Groups
+    kbSwitcherNext             = "ALT + Tab",
+    kbSwitcherPrev             = "SHIFT + ALT + Tab",
+    kbSwitcherSuperNext        = "SUPER + Tab",
+    kbSwitcherSuperPrev        = "SUPER + SHIFT + Tab",
+    kbSwitcherCancel           = "ALT + Escape",
+    kbOverview                 = "SUPER + CTRL + Up",
     kbUngroup                  = "SUPER + U",
     kbToggleGroup              = "SUPER + Comma",
 

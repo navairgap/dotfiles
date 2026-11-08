@@ -13,11 +13,14 @@ import "deck"
 import "edge"
 import "home"
 import "launcher"
+import "overview"
 import "power"
 import "prefs"
 import "quick"
 import "settings"
 import "shot"
+import "snap"
+import "switch"
 import "vpn"
 import "wall"
 
@@ -39,6 +42,9 @@ ShellRoot {
     Charms { id: charms }
     Deck { id: deck }
     Shot { id: shot }
+    Switcher { id: switcher }
+    Overview { id: overview }
+    Zones { id: zones }
     Vpn { id: vpn }
     Walls { id: walls }
 
@@ -50,7 +56,21 @@ ShellRoot {
             Back { screen: s.modelData }
             // bar and home can be pulled off a screen (settings → display), the wallpaper stays. bound here, not inside
             // the window: visible from the window's own screen loops (window recreated, screen changes)
-            Home { screen: s.modelData; visible: Skin.scr(s.modelData.name, "home") }
+            Home {
+                screen: s.modelData
+                visible: Skin.scr(s.modelData.name, "home")
+                menuItems: [
+                    { label: "wallpapers", run: () => walls.toggle() },
+                    { label: "deck", run: () => deck.toggle() },
+                    { label: "quick settings", run: () => quick.toggle() },
+                    { label: "launcher", run: () => launcher.open() },
+                    { label: "display", run: () => prefs.open() },
+                    "-",
+                    { label: "overview", run: () => overview.toggle() },
+                    { label: "lock", run: () => Quickshell.execDetached(["sh", "-c", "~/.config/quickshell/rice/rice lock"]) },
+                    { label: "power menu", run: () => power.open() }
+                ]
+            }
             Hot { screen: s.modelData; onTriggered: quick.peek() }
             Bar {
                 screen: s.modelData
@@ -149,6 +169,30 @@ ShellRoot {
     Shortcut { name: "charms"; description: "emoji, kaomoji, symbols"; onPressed: charms.toggle() }
     Shortcut { name: "wall"; description: "wallpaper"; onPressed: walls.toggle() }
     Shortcut { name: "game"; description: "game mode"; onPressed: Rules.store.game = !Rules.store.game }
+    // alt-tab: hold the mod, tap, release. the mod release comes through onReleased; cancel is alt+escape
+    Shortcut {
+        name: "switcherNext"
+        description: "next window (alt-tab, super+tab)"
+        onPressed: switcher.step(1)
+        onReleased: switcher.arm()
+    }
+    Shortcut {
+        name: "switcherPrev"
+        description: "previous window (shift+alt-tab)"
+        onPressed: switcher.step(-1)
+        onReleased: switcher.arm()
+    }
+    Shortcut { name: "switcherCancel"; description: "put the switcher down"; onPressed: switcher.cancel() }
+    Shortcut { name: "overview"; description: "overview: every workspace on one scrim"; onPressed: overview.toggle() }
+    // snap zones: hypr moves the window, these just flash the region it landed on (pulse/snap)
+    Shortcut { name: "zoneLeft"; description: "snap left half"; onPressed: zones.flash("left") }
+    Shortcut { name: "zoneRight"; description: "snap right half"; onPressed: zones.flash("right") }
+    Shortcut { name: "zoneMax"; description: "snap full screen"; onPressed: zones.flash("max") }
+    Shortcut { name: "zoneCenter"; description: "snap centered"; onPressed: zones.flash("center") }
+    Shortcut { name: "zoneTl"; description: "snap top left quarter"; onPressed: zones.flash("tl") }
+    Shortcut { name: "zoneTr"; description: "snap top right quarter"; onPressed: zones.flash("tr") }
+    Shortcut { name: "zoneBl"; description: "snap bottom left quarter"; onPressed: zones.flash("bl") }
+    Shortcut { name: "zoneBr"; description: "snap bottom right quarter"; onPressed: zones.flash("br") }
 
     component Shortcut: GlobalShortcut { appid: "shell" }
 }

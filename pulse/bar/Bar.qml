@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Hyprland
 import Quickshell.Networking
+import Quickshell.Services.SystemTray
 import Quickshell.Services.UPower
 import Quickshell.Wayland
 import qs
@@ -74,7 +75,8 @@ PanelWindow {
                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.markClicked() }
             }
 
-            // workspaces: the current one stretches into a white pill, occupied ones grey, empty a line
+            // workspaces: the current one stretches into a white pill, occupied ones grey, empty a line.
+            // a hover on an occupied dot peeks the window list (the card below); a click focuses the workspace
             Pile {
                 id: ws
                 x: root.vert ? (parent.width - width) / 2 : mark.x + mark.width + 24
@@ -96,7 +98,14 @@ PanelWindow {
                         color: on ? Skin.fg : occ ? Skin.grey : Skin.s3
                         Behavior on len { NumberAnimation { duration: Skin.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Skin.glide } }
                         Behavior on color { ColorAnimation { duration: Skin.t } }
-                        MouseArea { anchors.fill: parent; anchors.margins: -6; onClicked: root.go(parent.n) }
+                        MouseArea { anchors.fill: parent; anchors.margins: -6; cursorShape: Qt.PointingHandCursor; onClicked: root.go(parent.n) }
+                        HoverHandler {
+                            id: dotHot
+                            onHoveredChanged: {
+                                if (hovered && parent.occ) { root.listAt = parent.mapToItem(pill, parent.width, parent.height); root.listWs = parent.n; }
+                                else if (!hovered && root.listWs === parent.n && !root.listHov.hovered) root.listCloseT.restart();
+                            }
+                        }
                     }
                 }
             }
@@ -145,6 +154,40 @@ PanelWindow {
                 x: root.vert ? (parent.width - width) / 2 : parent.width - width - 22
                 y: root.vert ? parent.height - height - 22 : (parent.height - height) / 2
                 spacing: 20
+
+                // real tray items first (the apps' own): click runs their default action, right-click opens their
+                // menu where they sit. six at most — a wall of icons reads like a taskbar, not a tray
+                Repeater {
+                    model: SystemTray.items.values.slice(0, 6)
+
+                    Item {
+                        id: sni
+                        required property var modelData
+                        width: 24
+                        height: 24
+                        Image {
+                            anchors.centerIn: parent
+                            width: 20
+                            height: 20
+                            source: sni.modelData.icon
+                            mipmap: true
+                            visible: status === Image.Ready
+                            layer.enabled: Skin.light
+                            layer.effect: MultiEffect { brightness: -1 }
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            anchors.margins: -6
+                            cursorShape: Qt.PointingHandCursor
+                            acceptedButtons: Qt.LeftButton | Qt.RightButton
+                            onClicked: m => {
+                                if (m.button === Qt.RightButton && sni.modelData.hasMenu)
+                                    sni.modelData.display(root, sni.mapToItem(root, sni.x, sni.y).x, sni.mapToItem(root, sni.x, sni.y).y);
+                                else sni.modelData.activate();
+                            }
+                        }
+                    }
+                }
 
                 Repeater {
                     model: Skin.state.bar
@@ -415,6 +458,113 @@ PanelWindow {
                         elide: Text.ElideRight
                         text: `${Rules.modes[i].what} · ${i === 0 ? Rules.rates[0] : Rules.refreshHz} hz`
                     }
+                }
+            }
+        }
+    }
+
+    // ---- workspace windows: hover an occupied dot and its windows peek out beside the bar, like the power card
+    // does for battery and modes. a row: icon, title, a min tag; click lands on the window — no exclusive keyboard
+    // here, so the dispatch can go straight away. leave both the dot and the card and it folds
+    property int listWs: -1
+    property point listAt
+    property bool listHot: false
+    readonly property var listWins: Hyprland.workspaces.values.find(w => w.id === listWs)?.toplevels.values ?? []
+    function wicon(cls) { return Quickshell.iconPath(DesktopEntries.heuristicLookup(cls)?.icon || "application-x-executable", "application-x-executable"); }
+    function pick(t) {
+        root.listWs = -1;
+        Hyprland.dispatch(`hl.dsp.focus({ window = "address:0x${t.address}" })`);
+    }
+    Timer { id: listCloseT; interval: 300; onTriggered: if (!root.listHot) root.listWs = -1 }
+
+    PopupWindow {
+        id: listPop
+        property real t: root.listWs > 0 ? 1 : 0
+        Behavior on t { NumberAnimation { duration: Skin.t; easing.type: Easing.BezierSpline; easing.bezierCurve: Skin.glide } }
+        visible: t > 0
+        anchor.item: pill
+        anchor.rect: root.vert ? Qt.rect(pill.width + 14, root.listAt.y, 1, 1) : Qt.rect(root.listAt.x, pill.height + 14, 1, 1)
+        anchor.edges: Edges.Top | Edges.Left
+        anchor.gravity: root.vert ? Edges.Top | Edges.Right : Edges.Bottom | Edges.Left
+        implicitWidth: Math.ceil(400 * Skin.s)
+        implicitHeight: Math.ceil((listBody.height + 44) * Skin.s)
+        color: "transparent"
+
+        Stage {
+            Rectangle {
+                id: listCard
+                width: 400
+                height: listBody.height + 44
+                radius: Skin.corner(36)
+                color: Skin.s1
+                border { width: 1; color: Skin.s2 }
+                opacity: listPop.t
+                transform: Translate { x: root.vert ? -16 * (1 - listPop.t) : 0; y: root.vert ? 0 : -16 * (1 - listPop.t) }
+                HoverHandler { id: listHov; onHoveredChanged: root.listHot = hovered }
+
+                Column {
+                    id: listBody
+                    x: 24
+                    y: 22
+                    width: parent.width - 48
+                    spacing: 6
+
+                    Row {
+                        spacing: 12
+                        Rectangle {
+                            width: 26
+                            height: 26
+                            radius: 13
+                            color: Skin.fg
+                            Lb { anchors.centerIn: parent; text: String(root.listWs); color: Skin.ink; px: 11 }
+                        }
+                        Lb { anchors.verticalCenter: parent.verticalCenter; text: root.listWins.length + " window" + (root.listWins.length === 1 ? "" : "s"); px: 10 }
+                    }
+
+                    Repeater {
+                        model: listPop.visible ? root.listWins : []
+
+                        Rectangle {
+                            id: wrow
+                            required property var modelData
+                            readonly property string cls: modelData.lastIpcObject?.class ?? modelData.wayland?.appId ?? ""
+                            readonly property bool min: modelData.wayland?.minimized ?? false
+                            width: listBody.width
+                            height: 46
+                            radius: Skin.corner(23)
+                            color: wrowHov.hovered ? Skin.s2 : "transparent"
+                            Behavior on color { ColorAnimation { duration: Skin.t } }
+
+                            Image {
+                                x: 14
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: 22
+                                height: 22
+                                source: root.wicon(wrow.cls)
+                                sourceSize: Qt.size(width, height)
+                                mipmap: true
+                                visible: status === Image.Ready
+                                layer.enabled: Skin.light
+                                layer.effect: MultiEffect { brightness: -1 }
+                                opacity: wrow.min ? 0.4 : 1
+                            }
+                            Text {
+                                textFormat: Text.PlainText
+                                x: 48
+                                anchors.verticalCenter: parent.verticalCenter
+                                width: parent.width - 92
+                                elide: Text.ElideRight
+                                text: wrow.modelData.title || wrow.cls
+                                font { family: Skin.ui; pixelSize: 14 }
+                                color: Skin.fg
+                                opacity: wrow.min ? 0.5 : 1
+                            }
+                            Lb { x: parent.width - 38; anchors.verticalCenter: parent.verticalCenter; visible: wrow.min; text: "min"; px: 9; color: Skin.mute }
+                            HoverHandler { id: wrowHov; cursorShape: Qt.PointingHandCursor }
+                            TapHandler { onTapped: root.pick(wrow.modelData) }
+                        }
+                    }
+                    Lb { visible: !root.listWins.length; text: "empty"; px: 11 }
                 }
             }
         }

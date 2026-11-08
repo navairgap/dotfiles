@@ -79,6 +79,25 @@ local function move_actions(win)
     end
 end
 
+-- snap the active window to a zone of the active monitor and float it: fx/fy top-left in %, fw/fh size in %
+-- (0 means the full edge). a snapped window stands still, windows-snap style — dwindle would drag a tiled one back.
+-- the shell flashes the same zone (pulse/snap), the fraction tables must match zone for zone
+local function snap_active(fx, fy, fw, fh)
+    local mon = hl.get_active_monitor()
+    if not (mon and mon.width and mon.height) then return end
+    hl.dispatch(hl.dsp.window.float({ action = "on" }))
+    hl.dispatch(hl.dsp.window.resize({
+        x = math.floor(mon.width * (fw > 0 and fw or 100) / 100),
+        y = math.floor(mon.height * (fh > 0 and fh or 100) / 100),
+        relative = false,
+    }))
+    hl.dispatch(hl.dsp.window.move({
+        x = math.floor(mon.x + mon.width * fx / 100),
+        y = math.floor(mon.y + mon.height * fy / 100),
+        relative = false,
+    }))
+end
+
 -- special workspaces: toggle, and when the ws is empty launch its app from vars.apps (stands in for caelestia's toggle).
 -- apps are read on keypress, not at load: user.lua loads after the binds and swaps them there
 local function toggle_special(name)
@@ -110,6 +129,7 @@ return {
     resizer              = resizer,
     resize_by_screen     = resize_by_screen,
     resize_active_window = resize_active_window,
+    snap_active          = snap_active,
     wsaction             = wsaction,
     move_actions         = move_actions,
 }
